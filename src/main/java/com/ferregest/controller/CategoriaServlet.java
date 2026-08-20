@@ -78,9 +78,15 @@ public class CategoriaServlet extends HttpServlet {
     }
 
     private void insertarCategoria(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
+            throws IOException, ServletException {
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
+
+        if (nombre == null || nombre.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre de la categoría es obligatorio.");
+            request.getRequestDispatcher("/categorias/registro.jsp").forward(request, response);
+            return;
+        }
 
         Categoria cat = new Categoria(0, nombre, descripcion);
         categoriaDAO.insertar(cat);
@@ -89,10 +95,18 @@ public class CategoriaServlet extends HttpServlet {
     }
 
     private void actualizarCategoria(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
+            throws IOException, ServletException {
         int id = Integer.parseInt(request.getParameter("id"));
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
+
+        if (nombre == null || nombre.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre de la categoría es obligatorio.");
+            Categoria catError = new Categoria(id, nombre, descripcion);
+            request.setAttribute("categoria", catError);
+            request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
+            return;
+        }
 
         Categoria cat = new Categoria(id, nombre, descripcion);
         categoriaDAO.actualizar(cat);

@@ -1,6 +1,7 @@
 package com.ferregest.controller;
 
 import com.ferregest.dao.ProductoDAO;
+import com.ferregest.dao.CategoriaDAO;
 import com.ferregest.model.Producto;
 
 import javax.servlet.ServletException;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ProductoServlet extends HttpServlet {
 
     private ProductoDAO productoDAO;
+    private CategoriaDAO categoriaDAO;
 
     /**
      * El método init() se ejecuta una sola vez cuando el Servlet nace en el servidor (Tomcat).
@@ -27,6 +29,7 @@ public class ProductoServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         productoDAO = new ProductoDAO();
+        categoriaDAO = new CategoriaDAO();
     }
 
     /**
@@ -46,6 +49,7 @@ public class ProductoServlet extends HttpServlet {
         // Según el valor de action, decidimos qué función ejecutar
         switch (action) {
             case "nuevo":
+                request.setAttribute("categorias", categoriaDAO.listar());
                 request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
                 break;
             case "editar":
@@ -88,6 +92,7 @@ public class ProductoServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Producto p = productoDAO.obtenerPorId(id);
         request.setAttribute("producto", p);
+        request.setAttribute("categorias", categoriaDAO.listar());
         request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
     }
 
@@ -95,36 +100,81 @@ public class ProductoServlet extends HttpServlet {
      * Recoge los datos de un formulario de inserción (vía POST) y los guarda en base de datos.
      */
     private void insertarProducto(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
+            throws IOException, ServletException {
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
-        double precio = Double.parseDouble(request.getParameter("precio"));
-        int stock = Integer.parseInt(request.getParameter("stock"));
-        int categoriaId = Integer.parseInt(request.getParameter("categoria_id"));
 
-        Producto producto = new Producto(0, nombre, descripcion, precio, stock, categoriaId);
-        productoDAO.insertar(producto);
+        if (nombre == null || nombre.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre es obligatorio.");
+            request.setAttribute("categorias", categoriaDAO.listar());
+            request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
+            return;
+        }
 
-        // Patrón PRG (Post-Redirect-Get): Redirigimos al listado. Evita que al recargar la página se reenvíe el formulario y duplique registros.
-        response.sendRedirect("productos");
+        try {
+            double precio = Double.parseDouble(request.getParameter("precio"));
+            int stock = Integer.parseInt(request.getParameter("stock"));
+            int categoriaId = Integer.parseInt(request.getParameter("categoria_id"));
+
+            if (precio <= 0 || stock < 0 || categoriaId <= 0) {
+                request.setAttribute("error", "Valores numéricos inválidos.");
+                request.setAttribute("categorias", categoriaDAO.listar());
+                request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
+                return;
+            }
+
+            Producto producto = new Producto(0, nombre, descripcion, precio, stock, categoriaId);
+            productoDAO.insertar(producto);
+            response.sendRedirect("productos");
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Error en el formato de los números.");
+            request.setAttribute("categorias", categoriaDAO.listar());
+            request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
+        }
     }
 
     /**
      * Recoge los datos actualizados de un producto desde un formulario y los envía al DAO.
      */
     private void actualizarProducto(HttpServletRequest request, HttpServletResponse response) 
-            throws IOException {
+            throws IOException, ServletException {
         int id = Integer.parseInt(request.getParameter("id"));
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
-        double precio = Double.parseDouble(request.getParameter("precio"));
-        int stock = Integer.parseInt(request.getParameter("stock"));
-        int categoriaId = Integer.parseInt(request.getParameter("categoria_id"));
 
-        Producto producto = new Producto(id, nombre, descripcion, precio, stock, categoriaId);
-        productoDAO.actualizar(producto);
+        if (nombre == null || nombre.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre es obligatorio.");
+            Producto prodError = new Producto(id, nombre, descripcion, 0, 0, 0);
+            request.setAttribute("producto", prodError);
+            request.setAttribute("categorias", categoriaDAO.listar());
+            request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
+            return;
+        }
 
-        response.sendRedirect("productos");
+        try {
+            double precio = Double.parseDouble(request.getParameter("precio"));
+            int stock = Integer.parseInt(request.getParameter("stock"));
+            int categoriaId = Integer.parseInt(request.getParameter("categoria_id"));
+
+            if (precio <= 0 || stock < 0 || categoriaId <= 0) {
+                request.setAttribute("error", "Valores numéricos inválidos.");
+                Producto prodError = new Producto(id, nombre, descripcion, precio, stock, categoriaId);
+                request.setAttribute("producto", prodError);
+                request.setAttribute("categorias", categoriaDAO.listar());
+                request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
+                return;
+            }
+
+            Producto producto = new Producto(id, nombre, descripcion, precio, stock, categoriaId);
+            productoDAO.actualizar(producto);
+            response.sendRedirect("productos");
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "Error en el formato de los números.");
+            Producto prodError = new Producto(id, nombre, descripcion, 0, 0, 0);
+            request.setAttribute("producto", prodError);
+            request.setAttribute("categorias", categoriaDAO.listar());
+            request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
+        }
     }
 
     /**
