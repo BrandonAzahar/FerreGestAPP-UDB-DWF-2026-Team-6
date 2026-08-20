@@ -52,10 +52,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- 
+                    <%-- 
                          Uso de JSTL (<c:forEach>) para iterar sobre la lista de objetos 'productos' que nos mandó el Servlet (request.setAttribute).
                          El Expression Language (${producto.nombre}) es la forma limpia de acceder a los getters (getNombre()) de la clase Java en el archivo JSP.
-                    -->
+                    --%>
                     <c:forEach var="producto" items="${productos}">
                         <tr>
                             <td>${producto.id}</td>
@@ -75,7 +75,7 @@
                         </tr>
                     </c:forEach>
                     
-                    <!-- Condicional JSTL (<c:if>) por si el ArrayList de la BD llega vacío -->
+                    <%-- Condicional JSTL (<c:if>) por si el ArrayList de la BD llega vacío --%>
                     <c:if test="${empty productos}">
                         <tr>
                             <td colspan="7" class="text-center p-4">No hay productos registrados en el inventario.</td>
