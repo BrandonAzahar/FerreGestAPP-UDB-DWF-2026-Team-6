@@ -1,6 +1,7 @@
 package com.ferregest.controller;
 
 import com.ferregest.dao.ProductoDAO;
+import com.ferregest.dao.CategoriaDAO;
 import com.ferregest.model.Producto;
 
 import javax.servlet.ServletException;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ProductoServlet extends HttpServlet {
 
     private ProductoDAO productoDAO;
+    private CategoriaDAO categoriaDAO;
 
     /**
      * El método init() se ejecuta una sola vez cuando el Servlet nace en el servidor (Tomcat).
@@ -27,6 +29,7 @@ public class ProductoServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         productoDAO = new ProductoDAO();
+        categoriaDAO = new CategoriaDAO();
     }
 
     /**
@@ -46,6 +49,7 @@ public class ProductoServlet extends HttpServlet {
         // Según el valor de action, decidimos qué función ejecutar
         switch (action) {
             case "nuevo":
+                request.setAttribute("categorias", categoriaDAO.listar());
                 request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
                 break;
             case "editar":
@@ -88,6 +92,7 @@ public class ProductoServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Producto p = productoDAO.obtenerPorId(id);
         request.setAttribute("producto", p);
+        request.setAttribute("categorias", categoriaDAO.listar());
         request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
     }
 
@@ -101,6 +106,7 @@ public class ProductoServlet extends HttpServlet {
 
         if (nombre == null || nombre.trim().isEmpty()) {
             request.setAttribute("error", "El nombre es obligatorio.");
+            request.setAttribute("categorias", categoriaDAO.listar());
             request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
             return;
         }
@@ -112,6 +118,7 @@ public class ProductoServlet extends HttpServlet {
 
             if (precio <= 0 || stock < 0 || categoriaId <= 0) {
                 request.setAttribute("error", "Valores numéricos inválidos.");
+                request.setAttribute("categorias", categoriaDAO.listar());
                 request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
                 return;
             }
@@ -121,6 +128,7 @@ public class ProductoServlet extends HttpServlet {
             response.sendRedirect("productos");
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Error en el formato de los números.");
+            request.setAttribute("categorias", categoriaDAO.listar());
             request.getRequestDispatcher("/productos/registro.jsp").forward(request, response);
         }
     }
@@ -138,6 +146,7 @@ public class ProductoServlet extends HttpServlet {
             request.setAttribute("error", "El nombre es obligatorio.");
             Producto prodError = new Producto(id, nombre, descripcion, 0, 0, 0);
             request.setAttribute("producto", prodError);
+            request.setAttribute("categorias", categoriaDAO.listar());
             request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
             return;
         }
@@ -151,6 +160,7 @@ public class ProductoServlet extends HttpServlet {
                 request.setAttribute("error", "Valores numéricos inválidos.");
                 Producto prodError = new Producto(id, nombre, descripcion, precio, stock, categoriaId);
                 request.setAttribute("producto", prodError);
+                request.setAttribute("categorias", categoriaDAO.listar());
                 request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
                 return;
             }
@@ -162,6 +172,7 @@ public class ProductoServlet extends HttpServlet {
             request.setAttribute("error", "Error en el formato de los números.");
             Producto prodError = new Producto(id, nombre, descripcion, 0, 0, 0);
             request.setAttribute("producto", prodError);
+            request.setAttribute("categorias", categoriaDAO.listar());
             request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
         }
     }

@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -48,8 +49,12 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="categoria_id" class="form-label">ID de Categoría *</label>
-                            <input type="number" class="form-control" id="categoria_id" name="categoria_id" value="${producto.categoriaId}" required min="1">
+                            <label for="categoria_id" class="form-label">Categoría *</label>
+                            <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                <c:forEach var="cat" items="${categorias}">
+                                    <option value="${cat.id}" ${cat.id == producto.categoriaId ? 'selected' : ''}>${cat.nombre}</option>
+                                </c:forEach>
+                            </select>
                         </div>
                         
                         <div class="d-grid gap-2">
