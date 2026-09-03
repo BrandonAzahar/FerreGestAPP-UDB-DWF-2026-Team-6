@@ -40,6 +40,9 @@ public class ProductoServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
         // Obtenemos un parámetro de la URL (ej. ?action=eliminar)
         String action = request.getParameter("action");
         if (action == null) {
@@ -69,6 +72,9 @@ public class ProductoServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
         String action = request.getParameter("action");
 
         if ("insertar".equals(action)) {
