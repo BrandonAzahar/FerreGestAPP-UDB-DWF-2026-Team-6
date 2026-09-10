@@ -22,9 +22,31 @@
     <div class="container">
 
         <a class="navbar-brand"
-           href="${pageContext.request.contextPath}/categorias">
+           href="${pageContext.request.contextPath}/productos">
             FerreGest
         </a>
+
+        <div class="collapse navbar-collapse">
+
+            <ul class="navbar-nav me-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="${pageContext.request.contextPath}/productos">
+                        Productos
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active"
+                       href="${pageContext.request.contextPath}/categorias">
+                        Categorías
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
 
     </div>
 
@@ -81,14 +103,15 @@
 
                             <label for="descripcion"
                                    class="form-label">
-                                Descripción
+                                Descripción *
                             </label>
 
                             <textarea class="form-control"
                                       id="descripcion"
                                       name="descripcion"
                                       rows="3"
-                                      maxlength="255">${categoria.descripcion}</textarea>
+                                      maxlength="255"
+                                      required>${categoria.descripcion}</textarea>
 
                         </div>
 
@@ -123,10 +146,18 @@
 function validarFormulario() {
 
     const nombre = document.getElementById('nombre').value.trim();
+    const descripcion = document.getElementById('descripcion').value.trim();
 
     if (nombre === '') {
 
         alert('El nombre es obligatorio.');
+
+        return false;
+    }
+
+    if (descripcion === '') {
+
+        alert('La descripción es obligatoria.');
 
         return false;
     }

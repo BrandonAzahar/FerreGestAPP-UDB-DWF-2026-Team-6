@@ -1,143 +1,72 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>FerreGest - Editar Categoría</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
+    <title>FerreGest - Listado de Categorías</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body class="bg-light">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-
     <div class="container">
-
-        <a class="navbar-brand"
-           href="${pageContext.request.contextPath}/categorias">
-            FerreGest
-        </a>
-
+        <a class="navbar-brand" href="${pageContext.request.contextPath}/productos">FerreGest</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/productos">Productos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="${pageContext.request.contextPath}/categorias">Categorías</a>
+                </li>
+            </ul>
+        </div>
     </div>
-
 </nav>
 
 <div class="container">
-
-    <div class="row justify-content-center">
-
-        <div class="col-md-6">
-
-            <div class="card shadow-sm">
-
-                <div class="card-header bg-warning text-dark">
-
-                    <h4 class="mb-0">
-                        Editar Categoría
-                    </h4>
-
-                </div>
-
-                <div class="card-body">
-
-                    <form action="${pageContext.request.contextPath}/categorias"
-                          method="POST"
-                          onsubmit="return validarFormulario();">
-
-                        <input type="hidden"
-                               name="action"
-                               value="actualizar">
-
-                        <input type="hidden"
-                               name="id"
-                               value="${categoria.id}">
-
-                        <div class="mb-3">
-
-                            <label for="nombre"
-                                   class="form-label">
-                                Nombre de Categoría *
-                            </label>
-
-                            <input type="text"
-                                   class="form-control"
-                                   id="nombre"
-                                   name="nombre"
-                                   value="${categoria.nombre}"
-                                   required
-                                   maxlength="100">
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label for="descripcion"
-                                   class="form-label">
-                                Descripción
-                            </label>
-
-                            <textarea class="form-control"
-                                      id="descripcion"
-                                      name="descripcion"
-                                      rows="3"
-                                      maxlength="255">${categoria.descripcion}</textarea>
-
-                        </div>
-
-                        <div class="d-grid gap-2">
-
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                Actualizar
-                            </button>
-
-                            <a href="${pageContext.request.contextPath}/categorias"
-                               class="btn btn-secondary">
-                                Cancelar
-                            </a>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Listado de Categorías</h2>
+        <a href="categorias?action=nuevo" class="btn btn-success">Nueva Categoría</a>
     </div>
 
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="cat" items="${categorias}">
+                        <tr>
+                            <td>${cat.id}</td>
+                            <td>${cat.nombre}</td>
+                            <td>${cat.descripcion}</td>
+                            <td>
+                                <a href="categorias?action=editar&id=${cat.id}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="categorias?action=eliminar&id=${cat.id}" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar esta categoría?');">Eliminar</a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                    
+                    <c:if test="${empty categorias}">
+                        <tr>
+                            <td colspan="4" class="text-center p-4">No hay categorías registradas.</td>
+                        </tr>
+                    </c:if>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<script>
-
-function validarFormulario() {
-
-    const nombre = document.getElementById('nombre').value.trim();
-
-    if (nombre === '') {
-
-        alert('El nombre es obligatorio.');
-
-        return false;
-    }
-
-    return true;
-}
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

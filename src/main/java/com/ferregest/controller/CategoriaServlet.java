@@ -86,8 +86,8 @@ public class CategoriaServlet extends HttpServlet {
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            request.setAttribute("error", "El nombre de la categoría es obligatorio.");
+        if (nombre == null || nombre.trim().isEmpty() || descripcion == null || descripcion.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre y la descripción de la categoría son obligatorios.");
             request.getRequestDispatcher("/categorias/registro.jsp").forward(request, response);
             return;
         }
@@ -104,8 +104,8 @@ public class CategoriaServlet extends HttpServlet {
         String nombre = request.getParameter("nombre");
         String descripcion = request.getParameter("descripcion");
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            request.setAttribute("error", "El nombre de la categoría es obligatorio.");
+        if (nombre == null || nombre.trim().isEmpty() || descripcion == null || descripcion.trim().isEmpty()) {
+            request.setAttribute("error", "El nombre y la descripción de la categoría son obligatorios.");
             Categoria catError = new Categoria(id, nombre, descripcion);
             request.setAttribute("categoria", catError);
             request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
