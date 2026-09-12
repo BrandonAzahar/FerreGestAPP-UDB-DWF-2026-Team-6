@@ -14,7 +14,6 @@ import java.util.Properties;
 public class ConexionDB {
     // Instancia única de la clase (Singleton)
     private static ConexionDB instance;
-    private Connection connection;
     
     // Credenciales de acceso a la BD
     private String url;
@@ -23,13 +22,12 @@ public class ConexionDB {
 
     /**
      * Constructor privado para evitar que se instancie desde fuera de la clase.
-     * Aquí se lee el archivo de propiedades para obtener las credenciales.
      */
     private ConexionDB() {
-        try {
+        // OPTIMIZACIÓN: Se usa try-with-resources para cerrar automáticamente el InputStream
+        // evitando fugas de memoria (memory leaks).
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("db.properties")) {
             Properties props = new Properties();
-            // Cargamos el archivo db.properties desde la ruta src/main/resources
-            InputStream in = getClass().getClassLoader().getResourceAsStream("db.properties");
             if (in != null) {
                 props.load(in);
                 this.url = props.getProperty("db.url");
@@ -49,8 +47,7 @@ public class ConexionDB {
     }
 
     /**
-     * Método para obtener la única instancia de la clase.
-     * Es synchronized para prevenir problemas en entornos multihilo.
+     * Método para obtener la única instancia de la clase de configuración.
      */
     public static synchronized ConexionDB getInstance() {
         if (instance == null) {
@@ -60,13 +57,11 @@ public class ConexionDB {
     }
 
     /**
-     * Retorna la conexión activa a la base de datos.
-     * Si está cerrada o es nula, crea una nueva.
+     * CORRECCIÓN DE CONCURRENCIA: 
+     * Retorna una NUEVA conexión cada vez que un DAO la solicita.
+     * Esto evita que múltiples usuarios (hilos) choquen al usar la misma conexión.
      */
     public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(url, username, password);
-        }
-        return connection;
+        return DriverManager.getConnection(url, username, password);
     }
 }

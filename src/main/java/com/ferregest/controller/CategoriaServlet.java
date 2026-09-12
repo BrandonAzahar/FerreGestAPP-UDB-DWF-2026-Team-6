@@ -75,10 +75,18 @@ public class CategoriaServlet extends HttpServlet {
 
     private void editarCategoria(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        Categoria cat = categoriaDAO.obtenerPorId(id);
-        request.setAttribute("categoria", cat);
-        request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Categoria cat = categoriaDAO.obtenerPorId(id);
+            if (cat == null) {
+                response.sendRedirect("categorias");
+                return;
+            }
+            request.setAttribute("categoria", cat);
+            request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendRedirect("categorias");
+        }
     }
 
     private void insertarCategoria(HttpServletRequest request, HttpServletResponse response) 
@@ -100,28 +108,36 @@ public class CategoriaServlet extends HttpServlet {
 
     private void actualizarCategoria(HttpServletRequest request, HttpServletResponse response) 
             throws IOException, ServletException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        String nombre = request.getParameter("nombre");
-        String descripcion = request.getParameter("descripcion");
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String nombre = request.getParameter("nombre");
+            String descripcion = request.getParameter("descripcion");
 
-        if (nombre == null || nombre.trim().isEmpty() || descripcion == null || descripcion.trim().isEmpty()) {
-            request.setAttribute("error", "El nombre y la descripción de la categoría son obligatorios.");
-            Categoria catError = new Categoria(id, nombre, descripcion);
-            request.setAttribute("categoria", catError);
-            request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
-            return;
+            if (nombre == null || nombre.trim().isEmpty() || descripcion == null || descripcion.trim().isEmpty()) {
+                request.setAttribute("error", "El nombre y la descripción de la categoría son obligatorios.");
+                Categoria catError = new Categoria(id, nombre, descripcion);
+                request.setAttribute("categoria", catError);
+                request.getRequestDispatcher("/categorias/edicion.jsp").forward(request, response);
+                return;
+            }
+
+            Categoria cat = new Categoria(id, nombre, descripcion);
+            categoriaDAO.actualizar(cat);
+
+            response.sendRedirect("categorias");
+        } catch (NumberFormatException e) {
+            response.sendRedirect("categorias");
         }
-
-        Categoria cat = new Categoria(id, nombre, descripcion);
-        categoriaDAO.actualizar(cat);
-
-        response.sendRedirect("categorias");
     }
 
     private void eliminarCategoria(HttpServletRequest request, HttpServletResponse response) 
             throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        categoriaDAO.eliminar(id);
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            categoriaDAO.eliminar(id);
+        } catch (NumberFormatException e) {
+            // Ignorar y redirigir
+        }
         
         response.sendRedirect("categorias");
     }

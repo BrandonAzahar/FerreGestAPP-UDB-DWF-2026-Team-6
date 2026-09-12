@@ -23,14 +23,10 @@ public class ProductoDAO {
     public List<Producto> listar() {
         List<Producto> lista = new ArrayList<>();
         String sql = "SELECT id, nombre, descripcion, precio, stock, categoria_id FROM productos";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         
-        try {
-            con = ConexionDB.getInstance().getConnection();
-            ps = con.prepareStatement(sql);
-            rs = ps.executeQuery();
+        try (Connection con = ConexionDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             
             while (rs.next()) {
                 Producto p = new Producto();
@@ -44,13 +40,6 @@ public class ProductoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return lista;
     }
@@ -58,46 +47,34 @@ public class ProductoDAO {
     public Producto obtenerPorId(int id) {
         Producto p = null;
         String sql = "SELECT * FROM productos WHERE id = ?";
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
         
-        try {
-            con = ConexionDB.getInstance().getConnection();
-            ps = con.prepareStatement(sql);
+        try (Connection con = ConexionDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
             ps.setInt(1, id);
-            rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                p = new Producto();
-                p.setId(rs.getInt("id"));
-                p.setNombre(rs.getString("nombre"));
-                p.setDescripcion(rs.getString("descripcion"));
-                p.setPrecio(rs.getDouble("precio"));
-                p.setStock(rs.getInt("stock"));
-                p.setCategoriaId(rs.getInt("categoria_id"));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    p = new Producto();
+                    p.setId(rs.getInt("id"));
+                    p.setNombre(rs.getString("nombre"));
+                    p.setDescripcion(rs.getString("descripcion"));
+                    p.setPrecio(rs.getDouble("precio"));
+                    p.setStock(rs.getInt("stock"));
+                    p.setCategoriaId(rs.getInt("categoria_id"));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return p;
     }
 
     public void insertar(Producto producto) {
         String sql = "INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id) VALUES (?, ?, ?, ?, ?)";
-        Connection con = null;
-        PreparedStatement ps = null;
         
-        try {
-            con = ConexionDB.getInstance().getConnection();
-            ps = con.prepareStatement(sql);
+        try (Connection con = ConexionDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
             ps.setString(1, producto.getNombre());
             ps.setString(2, producto.getDescripcion());
             ps.setDouble(3, producto.getPrecio());
@@ -108,23 +85,15 @@ public class ProductoDAO {
             
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public void actualizar(Producto producto) {
         String sql = "UPDATE productos SET nombre=?, descripcion=?, precio=?, stock=?, categoria_id=? WHERE id=?";
-        Connection con = null;
-        PreparedStatement ps = null;
         
-        try {
-            con = ConexionDB.getInstance().getConnection();
-            ps = con.prepareStatement(sql);
+        try (Connection con = ConexionDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
             ps.setString(1, producto.getNombre());
             ps.setString(2, producto.getDescripcion());
             ps.setDouble(3, producto.getPrecio());
@@ -136,34 +105,20 @@ public class ProductoDAO {
             
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public void eliminar(int id) {
         String sql = "DELETE FROM productos WHERE id=?";
-        Connection con = null;
-        PreparedStatement ps = null;
         
-        try {
-            con = ConexionDB.getInstance().getConnection();
-            ps = con.prepareStatement(sql);
+        try (Connection con = ConexionDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             
             ps.setInt(1, id);
             ps.executeUpdate();
             
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (ps != null) ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

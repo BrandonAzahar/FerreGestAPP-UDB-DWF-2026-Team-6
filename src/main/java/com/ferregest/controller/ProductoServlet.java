@@ -95,11 +95,20 @@ public class ProductoServlet extends HttpServlet {
 
     private void editarProducto(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        Producto p = productoDAO.obtenerPorId(id);
-        request.setAttribute("producto", p);
-        request.setAttribute("categorias", categoriaDAO.listar());
-        request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Producto p = productoDAO.obtenerPorId(id);
+            if (p == null) {
+                response.sendRedirect("productos");
+                return;
+            }
+            request.setAttribute("producto", p);
+            request.setAttribute("categorias", categoriaDAO.listar());
+            request.getRequestDispatcher("/productos/edicion.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            // Si no viene un ID válido, redirigimos al listado
+            response.sendRedirect("productos");
+        }
     }
 
     /**
@@ -188,10 +197,14 @@ public class ProductoServlet extends HttpServlet {
      */
     private void eliminarProducto(HttpServletRequest request, HttpServletResponse response) 
             throws IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        productoDAO.eliminar(id);
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            productoDAO.eliminar(id);
+        } catch (NumberFormatException e) {
+            // Ignoramos si el ID es nulo o inválido y redirigimos sin eliminar
+        }
         
-        // Volvemos al listado después de eliminar
+        // Volvemos al listado después de intentar eliminar
         response.sendRedirect("productos");
     }
 }
