@@ -117,10 +117,13 @@
 
                         <div class="d-grid gap-2">
 
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                Actualizar
-                            </button>
+                            <div id="btnWrapper" style="cursor: not-allowed;" class="d-inline-block w-100" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Debes realizar algún cambio para poder actualizar.">
+                                <button type="submit"
+                                        id="btnActualizar"
+                                        class="btn btn-primary w-100" style="pointer-events: none;" disabled>
+                                    Actualizar
+                                </button>
+                            </div>
 
                             <a href="${pageContext.request.contextPath}/categorias"
                                class="btn btn-secondary">
@@ -143,22 +146,57 @@
 
 <script>
 
+let nombreOriginal = '';
+let descripcionOriginal = '';
+let btnActualizar;
+let tooltip;
+
+function verificarCambios() {
+    const nombreActual = document.getElementById('nombre').value.trim();
+    const descripcionActual = document.getElementById('descripcion').value.trim();
+    
+    if (nombreActual !== nombreOriginal || descripcionActual !== descripcionOriginal) {
+        btnActualizar.disabled = false;
+        btnActualizar.style.pointerEvents = 'auto';
+        document.getElementById('btnWrapper').style.cursor = 'default';
+        if(tooltip) tooltip.disable();
+    } else {
+        btnActualizar.disabled = true;
+        btnActualizar.style.pointerEvents = 'none';
+        document.getElementById('btnWrapper').style.cursor = 'not-allowed';
+        if(tooltip) tooltip.enable();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    nombreOriginal = document.getElementById('nombre').value.trim();
+    descripcionOriginal = document.getElementById('descripcion').value.trim();
+    btnActualizar = document.getElementById('btnActualizar');
+    
+    const wrapper = document.getElementById('btnWrapper');
+    tooltip = new bootstrap.Tooltip(wrapper);
+
+    document.getElementById('nombre').addEventListener('input', verificarCambios);
+    document.getElementById('descripcion').addEventListener('input', verificarCambios);
+});
+
 function validarFormulario() {
 
     const nombre = document.getElementById('nombre').value.trim();
     const descripcion = document.getElementById('descripcion').value.trim();
 
     if (nombre === '') {
-
         alert('El nombre es obligatorio.');
-
         return false;
     }
 
     if (descripcion === '') {
-
         alert('La descripción es obligatoria.');
+        return false;
+    }
 
+    if (nombre === nombreOriginal && descripcion === descripcionOriginal) {
+        alert('No se ha modificado ningún dato. Por favor realice algún cambio para actualizar.');
         return false;
     }
 
