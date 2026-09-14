@@ -139,7 +139,16 @@ public class ProductoServlet extends HttpServlet {
             }
 
             Producto producto = new Producto(0, nombre, descripcion, precio, stock, categoriaId);
-            productoDAO.insertar(producto);
+            boolean exito = productoDAO.insertar(producto);
+            
+            if (exito) {
+                request.getSession().setAttribute("mensaje", "Producto guardado exitosamente.");
+                request.getSession().setAttribute("tipoMensaje", "success");
+            } else {
+                request.getSession().setAttribute("mensaje", "Error al guardar el producto. Verifica la conexión a la base de datos MySQL.");
+                request.getSession().setAttribute("tipoMensaje", "danger");
+            }
+            
             response.sendRedirect("productos");
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Error en el formato de los números.");
@@ -181,7 +190,16 @@ public class ProductoServlet extends HttpServlet {
             }
 
             Producto producto = new Producto(id, nombre, descripcion, precio, stock, categoriaId);
-            productoDAO.actualizar(producto);
+            boolean exito = productoDAO.actualizar(producto);
+            
+            if (exito) {
+                request.getSession().setAttribute("mensaje", "Producto actualizado exitosamente.");
+                request.getSession().setAttribute("tipoMensaje", "success");
+            } else {
+                request.getSession().setAttribute("mensaje", "Error al actualizar el producto. Verifica la conexión a la base de datos.");
+                request.getSession().setAttribute("tipoMensaje", "danger");
+            }
+            
             response.sendRedirect("productos");
         } catch (NumberFormatException e) {
             request.setAttribute("error", "Error en el formato de los números.");

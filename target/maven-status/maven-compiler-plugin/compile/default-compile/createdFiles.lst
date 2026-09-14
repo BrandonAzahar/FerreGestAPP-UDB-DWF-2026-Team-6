@@ -1,0 +1,7 @@
+com\ferregest\dao\ProductoDAO.class
+com\ferregest\util\ConexionDB.class
+com\ferregest\controller\ProductoServlet.class
+com\ferregest\dao\CategoriaDAO.class
+com\ferregest\controller\CategoriaServlet.class
+com\ferregest\model\Categoria.class
+com\ferregest\model\Producto.class

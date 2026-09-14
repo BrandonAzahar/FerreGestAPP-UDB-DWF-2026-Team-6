@@ -69,9 +69,9 @@ public class ProductoDAO {
         return p;
     }
 
-    public void insertar(Producto producto) {
+    public boolean insertar(Producto producto) {
         String sql = "INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id) VALUES (?, ?, ?, ?, ?)";
-        
+        boolean exito = false;
         try (Connection con = ConexionDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
              
@@ -81,16 +81,17 @@ public class ProductoDAO {
             ps.setInt(4, producto.getStock());
             ps.setInt(5, producto.getCategoriaId());
             
-            ps.executeUpdate();
+            exito = ps.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return exito;
     }
 
-    public void actualizar(Producto producto) {
+    public boolean actualizar(Producto producto) {
         String sql = "UPDATE productos SET nombre=?, descripcion=?, precio=?, stock=?, categoria_id=? WHERE id=?";
-        
+        boolean exito = false;
         try (Connection con = ConexionDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
              
@@ -101,11 +102,12 @@ public class ProductoDAO {
             ps.setInt(5, producto.getCategoriaId());
             ps.setInt(6, producto.getId());
             
-            ps.executeUpdate();
+            exito = ps.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return exito;
     }
 
     public void eliminar(int id) {

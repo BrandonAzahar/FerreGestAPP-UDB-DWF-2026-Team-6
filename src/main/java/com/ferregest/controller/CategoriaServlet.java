@@ -101,7 +101,15 @@ public class CategoriaServlet extends HttpServlet {
         }
 
         Categoria cat = new Categoria(0, nombre, descripcion);
-        categoriaDAO.insertar(cat);
+        boolean exito = categoriaDAO.insertar(cat);
+
+        if (exito) {
+            request.getSession().setAttribute("mensaje", "Categoría guardada exitosamente.");
+            request.getSession().setAttribute("tipoMensaje", "success");
+        } else {
+            request.getSession().setAttribute("mensaje", "Error al guardar. Verifica la conexión a la base de datos MySQL.");
+            request.getSession().setAttribute("tipoMensaje", "danger");
+        }
 
         response.sendRedirect("categorias");
     }
@@ -122,7 +130,15 @@ public class CategoriaServlet extends HttpServlet {
             }
 
             Categoria cat = new Categoria(id, nombre, descripcion);
-            categoriaDAO.actualizar(cat);
+            boolean exito = categoriaDAO.actualizar(cat);
+
+            if (exito) {
+                request.getSession().setAttribute("mensaje", "Categoría actualizada exitosamente.");
+                request.getSession().setAttribute("tipoMensaje", "success");
+            } else {
+                request.getSession().setAttribute("mensaje", "Error al actualizar. Verifica la conexión a la base de datos.");
+                request.getSession().setAttribute("tipoMensaje", "danger");
+            }
 
             response.sendRedirect("categorias");
         } catch (NumberFormatException e) {
