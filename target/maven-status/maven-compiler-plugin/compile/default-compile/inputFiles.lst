@@ -1,7 +1,7 @@
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\controller\CategoriaServlet.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\controller\ProductoServlet.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\dao\CategoriaDAO.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\dao\ProductoDAO.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\model\Categoria.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\model\Producto.java
-C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\util\ConexionDB.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\model\Categoria.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\util\ConexionDB.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\dao\ProductoDAO.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\controller\CategoriaServlet.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\model\Producto.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\controller\ProductoServlet.java
+C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\dao\CategoriaDAO.java
