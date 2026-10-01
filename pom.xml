@@ -70,6 +70,21 @@
             <version>2.7.10</version>
         </dependency>
 
+        <!-- CDI API para anotaciones como @Named y @ViewScoped (si es que no usan servidor EE completo) -->
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- API de anotaciones comunes (necesaria para Java 11+ como @PostConstruct) -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
