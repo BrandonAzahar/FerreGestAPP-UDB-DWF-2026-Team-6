@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+<h:head>
+    <title>Prueba de JSF y Validadores</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .error { color: red; font-size: 0.9em; }
+        .success { color: green; font-weight: bold; }
+        table { margin-top: 20px; border-collapse: collapse; width: 100%; max-width: 800px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</h:head>
+<h:body>
+    <h:form id="testForm">
+        <h2>Prueba Funcional de Managed Beans (Fase 2)</h2>
+        <p>Prueba intentar poner un <strong>precio negativo</strong> o un <strong>stock menor a 0</strong> para ver cómo saltan los validadores que acabamos de crear.</p>
+        
+        <h:messages globalOnly="true" class="success" />
+        
+        <h:panelGrid columns="3" cellpadding="5">
+            <h:outputLabel value="Nombre:" />
+            <h:inputText id="nombre" value="#{productoBean.producto.nombre}" required="true" requiredMessage="El nombre es obligatorio" />
+            <h:message for="nombre" class="error" />
+            
+            <h:outputLabel value="Descripción:" />
+            <h:inputText id="desc" value="#{productoBean.producto.descripcion}" />
+            <h:message for="desc" class="error" />
+            
+            <h:outputLabel value="Precio:" />
+            <h:inputText id="precio" value="#{productoBean.producto.precio}" required="true" requiredMessage="Precio requerido">
+                <!-- Validador de Precio (Integrante 4) -->
+                <f:validator validatorId="precioValidator" />
+            </h:inputText>
+            <h:message for="precio" class="error" />
+            
+            <h:outputLabel value="Stock:" />
+            <h:inputText id="stock" value="#{productoBean.producto.stock}" required="true" requiredMessage="Stock requerido">
+                <!-- Validador de Stock (Integrante 4) -->
+                <f:validator validatorId="stockValidator" />
+            </h:inputText>
+            <h:message for="stock" class="error" />
+            
+            <h:outputLabel value="ID Categoría:" />
+            <h:inputText id="catId" value="#{productoBean.producto.categoriaId}" required="true" />
+            <h:message for="catId" class="error" />
+        </h:panelGrid>
+        
+        <br/>
+        <h:commandButton value="Guardar Producto" action="#{productoBean.guardar}" style="padding: 10px 20px; font-weight: bold; cursor: pointer;">
+            <!-- AJAX para no recargar toda la página -->
+            <f:ajax execute="@form" render="@form" />
+        </h:commandButton>
+        <br/><br/>
+        
+        <h3>Listado de Productos en la Base de Datos</h3>
+        <h:dataTable value="#{productoBean.listaProductos}" var="prod">
+            <h:column>
+                <f:facet name="header">ID</f:facet>
+                #{prod.id}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Nombre</f:facet>
+                #{prod.nombre}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Precio</f:facet>
+                $#{prod.precio}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Stock</f:facet>
+                #{prod.stock}
+            </h:column>
+            <h:column>
+                <f:facet name="header">Cat. ID</f:facet>
+                #{prod.categoriaId}
+            </h:column>
+        </h:dataTable>
+    </h:form>
+</h:body>
+</html>
