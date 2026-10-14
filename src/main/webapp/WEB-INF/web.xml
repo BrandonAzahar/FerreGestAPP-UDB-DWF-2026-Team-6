@@ -5,32 +5,72 @@
          http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
 
-    <!-- Listener de Weld para iniciar CDI en Tomcat -->
+    <display-name>FerreGest - Sistema Web de Gestion e Inventario</display-name>
+
+    <!-- Context Params para JSF 2.3 -->
+    <!-- Development muestra errores detallados en pantalla; cambiar a Production al entregar -->
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+    </context-param>
+
+    <!-- Los campos de texto vacíos llegan como null (permite que required="true" funcione bien) -->
+    <context-param>
+        <param-name>javax.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- Evita que Facelets procese/evalúe expresiones EL escritas dentro de comentarios HTML -->
+    <context-param>
+        <param-name>javax.faces.FACELETS_SKIP_COMMENTS</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- Guarda el estado de las vistas en el servidor (necesario para @ViewScoped + AJAX) -->
+    <context-param>
+        <param-name>javax.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+
+    <!-- Listener de Weld para iniciar el contenedor CDI en Apache Tomcat -->
     <listener>
         <listener-class>org.jboss.weld.environment.servlet.Listener</listener-class>
     </listener>
 
+    <!-- Referencia JNDI al BeanManager de CDI (se completa con el Resource de META-INF/context.xml) -->
     <resource-env-ref>
         <resource-env-ref-name>BeanManager</resource-env-ref-name>
         <resource-env-ref-type>javax.enterprise.inject.spi.BeanManager</resource-env-ref-type>
     </resource-env-ref>
 
-    <!-- Configuración del Servlet de JSF (FacesServlet) -->
+    <!-- Configuración del Servlet Central de JavaServer Faces (FacesServlet) -->
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
-    <!-- Mapeo para que todo archivo .xhtml pase por JSF -->
+    <!-- Mapeo de URL para procesar archivos .xhtml a través de JSF -->
     <servlet-mapping>
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
 
-    <!-- Página de inicio -->
+    <!-- Tiempo de vida de la sesión (minutos) -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+
+    <!-- Si la sesión expira y el usuario pulsa un botón AJAX, se regresa al inicio en lugar de mostrar un error -->
+    <error-page>
+        <exception-type>javax.faces.application.ViewExpiredException</exception-type>
+        <location>/index.xhtml</location>
+    </error-page>
+
+    <!-- Página de bienvenida predeterminada -->
     <welcome-file-list>
-        <welcome-file>test.xhtml</welcome-file>
+        <welcome-file>index.xhtml</welcome-file>
+        <welcome-file>productos.xhtml</welcome-file>
     </welcome-file-list>
 
 </web-app>
