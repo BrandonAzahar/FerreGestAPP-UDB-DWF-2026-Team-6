@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>FerreGest - Categorías</title>
+
+    <h:outputStylesheet library="css" name="estilos.css"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
+</h:head>
+
+<h:body>
+
+    <div class="d-flex">
+
+        <!-- MENÚ LATERAL -->
+        <aside class="sidebar">
+
+            <div class="sidebar-brand">
+                <h2>FerreGest</h2>
+                <span>Sistema de Gestión</span>
+            </div>
+
+            <nav class="sidebar-menu">
+
+                <a href="#{request.contextPath}/index.xhtml"
+                   class="menu-item">
+                    <span>⌂</span>
+                    <span>Inicio</span>
+                </a>
+
+                <a href="#{request.contextPath}/productos/productos.xhtml"
+                   class="menu-item">
+                    <span>📦</span>
+                    <span>Productos</span>
+                </a>
+
+                <a href="#{request.contextPath}/categorias/categorias.xhtml"
+                   class="menu-item active">
+                    <span>📂</span>
+                    <span>Categorías</span>
+                </a>
+
+            </nav>
+
+        </aside>
+
+        <!-- CONTENIDO -->
+        <main class="main-content">
+
+            <div class="topbar">
+
+                <div>
+                    <h1>Categorías</h1>
+                    <p>Administración de categorías de productos.</p>
+                </div>
+
+            </div>
+
+            <div class="container-fluid">
+
+                <!-- MENSAJES -->
+                <h:messages id="mensajes"
+                            globalOnly="true"
+                            styleClass="alert-container"
+                            infoClass="alert alert-success"
+                            errorClass="alert alert-danger"
+                            warnClass="alert alert-warning"/>
+
+                <div class="row g-4">
+
+                    <!-- FORMULARIO -->
+                    <div class="col-lg-4">
+
+                        <div class="card shadow-sm">
+
+                            <div class="card-header">
+
+                                <h5 class="mb-0">
+
+                                    #{categoriaBean.categoria.id == 0
+                                        ? 'Nueva Categoría'
+                                        : 'Editar Categoría'}
+
+                                </h5>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <h:form id="formCategoria">
+
+                                    <!-- NOMBRE -->
+                                    <div class="mb-3">
+
+                                        <h:outputLabel
+                                                for="nombre"
+                                                value="Nombre"
+                                                styleClass="form-label"/>
+
+                                        <h:inputText
+                                                id="nombre"
+                                                value="#{categoriaBean.categoria.nombre}"
+                                                required="true"
+                                                requiredMessage="El nombre de la categoría es obligatorio."
+                                                styleClass="form-control"/>
+
+                                        <h:message
+                                                for="nombre"
+                                                styleClass="text-danger small"/>
+
+                                    </div>
+
+                                    <!-- DESCRIPCIÓN -->
+                                    <div class="mb-3">
+
+                                        <h:outputLabel
+                                                for="descripcion"
+                                                value="Descripción"
+                                                styleClass="form-label"/>
+
+                                        <h:inputTextarea
+                                                id="descripcion"
+                                                value="#{categoriaBean.categoria.descripcion}"
+                                                rows="4"
+                                                styleClass="form-control"/>
+
+                                        <h:message
+                                                for="descripcion"
+                                                styleClass="text-danger small"/>
+
+                                    </div>
+
+                                    <!-- BOTÓN GUARDAR -->
+                                    <h:commandButton
+                                            value="#{categoriaBean.categoria.id == 0
+                                        ? 'Guardar Categoría'
+                                        : 'Actualizar Categoría'}"
+                                            action="#{categoriaBean.guardar}"
+                                            styleClass="btn btn-primary w-100">
+
+                                        <f:ajax
+                                                execute="@form"
+                                                render="@form :tablaCategorias :mensajes"
+                                        />
+
+                                    </h:commandButton>
+
+                                    <!-- NUEVA CATEGORÍA -->
+                                    <h:commandButton
+                                            value="Nueva Categoría"
+                                            action="#{categoriaBean.prepararNuevo}"
+                                            immediate="true"
+                                            styleClass="btn btn-outline-secondary w-100 mt-2">
+
+                                        <f:ajax
+                                                execute="@this"
+                                                render="@form"
+                                        />
+
+                                    </h:commandButton>
+
+                                </h:form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- TABLA -->
+                    <div class="col-lg-8">
+
+                        <div class="card shadow-sm">
+
+                            <div class="card-header d-flex justify-content-between align-items-center">
+
+                                <h5 class="mb-0">
+                                    Categorías registradas
+                                </h5>
+
+                                <span class="badge bg-primary">
+                                #{categoriaBean.listaCategorias.size()}
+                            </span>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <h:form id="formTablaCategorias">
+
+                                    <h:dataTable
+                                            id="tablaCategorias"
+                                            value="#{categoriaBean.listaCategorias}"
+                                            var="cat"
+                                            styleClass="table table-hover align-middle"
+                                            rendered="#{not empty categoriaBean.listaCategorias}">
+
+                                        <!-- ID -->
+                                        <h:column>
+
+                                            <f:facet name="header">
+                                                ID
+                                            </f:facet>
+
+                                            #{cat.id}
+
+                                        </h:column>
+
+                                        <!-- NOMBRE -->
+                                        <h:column>
+
+                                            <f:facet name="header">
+                                                Nombre
+                                            </f:facet>
+
+                                            #{cat.nombre}
+
+                                        </h:column>
+
+                                        <!-- DESCRIPCIÓN -->
+                                        <h:column>
+
+                                            <f:facet name="header">
+                                                Descripción
+                                            </f:facet>
+
+                                            #{cat.descripcion}
+
+                                        </h:column>
+
+                                        <!-- ACCIONES -->
+                                        <h:column>
+
+                                            <f:facet name="header">
+                                                Acciones
+                                            </f:facet>
+
+                                            <div class="d-flex gap-2">
+
+                                                <!-- EDITAR -->
+                                                <h:commandButton
+                                                        value="Editar"
+                                                        action="#{categoriaBean.prepararEditar(cat)}"
+                                                        styleClass="btn btn-sm btn-warning">
+
+                                                    <f:ajax
+                                                            execute="@this"
+                                                            render=":formCategoria"
+                                                    />
+
+                                                </h:commandButton>
+
+                                                <!-- ELIMINAR -->
+                                                <h:commandButton
+                                                        value="Eliminar"
+                                                        action="#{categoriaBean.eliminar(cat.id)}"
+                                                        styleClass="btn btn-sm btn-danger"
+                                                        onclick="return confirm('¿Está seguro de eliminar esta categoría?');">
+
+                                                    <f:ajax
+                                                            execute="@this"
+                                                            render=":tablaCategorias :formCategoria :mensajes"
+                                                    />
+
+                                                </h:commandButton>
+
+                                            </div>
+
+                                        </h:column>
+
+                                    </h:dataTable>
+
+                                    <div
+                                            class="empty-state"
+                                            rendered="#{empty categoriaBean.listaCategorias}">
+
+                                        <div class="empty-icon">
+                                            📂
+                                        </div>
+
+                                        <h5>No hay categorías registradas</h5>
+
+                                        <p>
+                                            Utiliza el formulario para registrar
+                                            una nueva categoría.
+                                        </p>
+
+                                    </div>
+
+                                </h:form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</h:body>
+</html>

@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/ferregest-webapp"/>
+<!--
+    Configuración de contexto para Apache Tomcat.
+    NOTA: el atributo "path" se ignora cuando el WAR se copia a webapps/; la URL real
+    será /ferregest (nombre del WAR definido en <finalName> del pom.xml).
+-->
+<Context path="/ferregest-webapp">
+
+    <!--
+        Publica el BeanManager de CDI (Weld) en JNDI. Tomcat no trae CDI de fábrica y su
+        JNDI es de solo lectura, por lo que Weld recomienda declararlo aquí para que JSF
+        pueda resolver los beans @Named y el alcance @ViewScoped.
+    -->
+    <Resource name="BeanManager"
+              auth="Container"
+              type="javax.enterprise.inject.spi.BeanManager"
+              factory="org.jboss.weld.resources.ManagerObjectFactory"/>
+
+</Context>
