@@ -1,7 +1,13 @@
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\model\Categoria.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\util\ConexionDB.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\dao\ProductoDAO.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\controller\CategoriaServlet.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\model\Producto.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\controller\ProductoServlet.java
-C:\Users\hecto\OneDrive\Vídeos\FerreGestAPP-UDB-DWF-2026-Team-6\src\main\java\com\ferregest\dao\CategoriaDAO.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\validator\PrecioValidator.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\util\JPAUtil.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\util\ConexionDB.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\controller\CategoriaServlet.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\dao\CategoriaDAO.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\model\Categoria.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\validator\StockValidator.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\bean\ProductoBean.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\model\Producto.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\dao\ProductoDAO.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\converter\CategoriaConverter.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\bean\CategoriaBean.java
+C:\Users\brandon\Downloads\FerreGestAPP-UDB-DWF-2026-Team-6-main (2)\FerreGestAPP-UDB-DWF-2026-Team-6-main\src\main\java\com\ferregest\controller\ProductoServlet.java

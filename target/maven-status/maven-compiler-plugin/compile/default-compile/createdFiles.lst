@@ -1,7 +1,13 @@
+com\ferregest\validator\PrecioValidator.class
+com\ferregest\util\JPAUtil.class
+com\ferregest\converter\CategoriaConverter.class
+com\ferregest\model\Producto.class
 com\ferregest\dao\ProductoDAO.class
+com\ferregest\validator\StockValidator.class
 com\ferregest\util\ConexionDB.class
 com\ferregest\controller\ProductoServlet.class
 com\ferregest\dao\CategoriaDAO.class
 com\ferregest\controller\CategoriaServlet.class
 com\ferregest\model\Categoria.class
-com\ferregest\model\Producto.class
+com\ferregest\bean\CategoriaBean.class
+com\ferregest\bean\ProductoBean.class
