@@ -3,6 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <!--
+        FerreGest - Sprint 2 (Fase 2)
+        Migración de la arquitectura Servlet/JSP + JDBC hacia JSF + AJAX + JPA/Hibernate.
+
+        NOTA SOBRE EL NAMESPACE:
+        Se usa el namespace "javax.*" (JSF 2.3, JPA 2.2, Servlet 4.0) porque el servidor
+        objetivo es Apache Tomcat 8.5/9.0 (el que trae XAMPP). Si en el futuro se migra a
+        Tomcat 10+, habría que cambiar a "jakarta.*" (Jakarta Faces 3/4, Hibernate 6).
+    -->
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ferregest</groupId>
@@ -13,13 +23,20 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
+
+        <!-- Versiones centralizadas de las dependencias principales -->
+        <hibernate.version>5.6.15.Final</hibernate.version>
+        <mojarra.version>2.3.9</mojarra.version>
+        <mysql.version>8.3.0</mysql.version>
+        <weld.version>3.1.9.Final</weld.version>
     </properties>
 
     <dependencies>
 
-        <!-- Servlet API -->
+        <!-- Servlet API 4.0 (Provided por Apache Tomcat 8.5/9.0) -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -27,7 +44,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JSP API -->
+        <!-- JSP API (se conserva para las vistas JSP originales del Sprint 1) -->
         <dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>javax.servlet.jsp-api</artifactId>
@@ -35,42 +52,42 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JSTL (para las JSP de Fase 1) -->
+        <!-- JSTL para soporte de vistas JSP/JSTL (módulo heredado del Sprint 1) -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
             <version>1.2</version>
         </dependency>
 
-        <!-- MySQL Connector -->
+        <!-- Conector MySQL Oficial -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>8.3.0</version>
+            <version>${mysql.version}</version>
         </dependency>
 
-        <!-- JSF (Mojarra) - Para la Fase 2 -->
+        <!-- JavaServer Faces (JSF 2.3 - Mojarra Implementation) -->
         <dependency>
             <groupId>org.glassfish</groupId>
             <artifactId>javax.faces</artifactId>
-            <version>2.3.9</version>
+            <version>${mojarra.version}</version>
         </dependency>
 
-        <!-- JPA API - Para la Fase 2 -->
+        <!-- JPA 2.2 API (Java Persistence API) -->
         <dependency>
             <groupId>javax.persistence</groupId>
             <artifactId>javax.persistence-api</artifactId>
             <version>2.2</version>
         </dependency>
 
-        <!-- EclipseLink (Implementación de JPA) - Para la Fase 2 -->
+        <!-- Hibernate Core (Proveedor de persistencia JPA) -->
         <dependency>
-            <groupId>org.eclipse.persistence</groupId>
-            <artifactId>eclipselink</artifactId>
-            <version>2.7.10</version>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
 
-        <!-- CDI API para anotaciones como @Named y @ViewScoped (si es que no usan servidor EE completo) -->
+        <!-- CDI API para Managed Beans (@Named, @ViewScoped) -->
         <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
@@ -78,18 +95,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- API de anotaciones comunes (necesaria para Java 11+ como @PostConstruct) -->
+        <!-- Anotaciones estándar (@PostConstruct, @PreDestroy) -->
         <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
         </dependency>
 
-        <!-- Weld (Implementación de CDI para Tomcat) - Integrante 1 -->
+        <!-- Weld Servlet (Contenedor CDI para Apache Tomcat, que no trae CDI de fábrica) -->
         <dependency>
             <groupId>org.jboss.weld.servlet</groupId>
             <artifactId>weld-servlet-shaded</artifactId>
-            <version>3.1.9.Final</version>
+            <version>${weld.version}</version>
         </dependency>
 
     </dependencies>
@@ -98,6 +115,18 @@
         <finalName>ferregest</finalName>
 
         <plugins>
+            <!-- Compilador de Java configurado para Java 17 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>17</release>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Plugin para empaquetar en archivo WAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
