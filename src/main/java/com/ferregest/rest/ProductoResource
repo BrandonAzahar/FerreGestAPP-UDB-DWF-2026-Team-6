@@ -1,0 +1,277 @@
+
+package com.ferregest.rest;
+
+import com.ferregest.dao.CategoriaDAO;
+import com.ferregest.dao.ProductoDAO;
+import com.ferregest.dto.ProductoDTO;
+import com.ferregest.model.Categoria;
+import com.ferregest.model.Producto;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Path("/productos")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class ProductoResource {
+
+    private final ProductoDAO productoDAO = new ProductoDAO();
+    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+
+    // GET: Listar todos los productos
+    @GET
+    public Response listar() {
+
+        try {
+            List<Producto> productos = productoDAO.listar();
+            List<ProductoDTO> resultado = new ArrayList<>();
+
+            for (Producto producto : productos) {
+                resultado.add(convertirDTO(producto));
+            }
+
+            return Response.ok(resultado).build();
+
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Error al consultar los productos")
+                    .build();
+        }
+    }
+
+    // GET: Obtener un producto por ID
+    @GET
+    @Path("/{id}")
+    public Response obtenerPorId(@PathParam("id") int id) {
+
+        if (id <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El ID debe ser mayor que cero")
+                    .build();
+        }
+
+        try {
+            Producto producto = productoDAO.obtenerPorId(id);
+
+            if (producto == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Producto no encontrado")
+                        .build();
+            }
+
+            return Response.ok(convertirDTO(producto)).build();
+
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Error al consultar el producto")
+                    .build();
+        }
+    }
+
+    // POST: Registrar un producto
+    @POST
+    public Response insertar(ProductoDTO dto) {
+
+        Response validacion = validarProducto(dto);
+
+        if (validacion != null) {
+            return validacion;
+        }
+
+        try {
+            Categoria categoria = obtenerCategoria(dto.getCategoriaId());
+
+            if (dto.getCategoriaId() != null && categoria == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("La categoría indicada no existe")
+                        .build();
+            }
+
+            Producto producto = new Producto(
+                    dto.getNombre().trim(),
+                    dto.getDescripcion(),
+                    dto.getPrecio(),
+                    dto.getStock(),
+                    categoria
+            );
+
+            if (!productoDAO.insertar(producto)) {
+                return Response.serverError()
+                        .entity("No se pudo registrar el producto")
+                        .build();
+            }
+
+            return Response.status(Response.Status.CREATED)
+                    .entity(convertirDTO(producto))
+                    .build();
+
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Error al registrar el producto")
+                    .build();
+        }
+    }
+
+    // PUT: Actualizar un producto
+    @PUT
+    @Path("/{id}")
+    public Response actualizar(
+            @PathParam("id") int id,
+            ProductoDTO dto) {
+
+        if (id <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El ID debe ser mayor que cero")
+                    .build();
+        }
+
+        Response validacion = validarProducto(dto);
+
+        if (validacion != null) {
+            return validacion;
+        }
+
+        try {
+            Producto existente = productoDAO.obtenerPorId(id);
+
+            if (existente == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Producto no encontrado")
+                        .build();
+            }
+
+            Categoria categoria = obtenerCategoria(dto.getCategoriaId());
+
+            if (dto.getCategoriaId() != null && categoria == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("La categoría indicada no existe")
+                        .build();
+            }
+
+            existente.setNombre(dto.getNombre().trim());
+            existente.setDescripcion(dto.getDescripcion());
+            existente.setPrecio(dto.getPrecio());
+            existente.setStock(dto.getStock());
+            existente.setCategoria(categoria);
+
+            if (!productoDAO.actualizar(existente)) {
+                return Response.serverError()
+                        .entity("No se pudo actualizar el producto")
+                        .build();
+            }
+
+            return Response.ok(convertirDTO(existente)).build();
+
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Error al actualizar el producto")
+                    .build();
+        }
+    }
+
+    // DELETE: Eliminar un producto
+    @DELETE
+    @Path("/{id}")
+    public Response eliminar(@PathParam("id") int id) {
+
+        if (id <= 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El ID debe ser mayor que cero")
+                    .build();
+        }
+
+        try {
+            Producto existente = productoDAO.obtenerPorId(id);
+
+            if (existente == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("Producto no encontrado")
+                        .build();
+            }
+
+            if (!productoDAO.eliminar(id)) {
+                return Response.serverError()
+                        .entity("No se pudo eliminar el producto")
+                        .build();
+            }
+
+            return Response.noContent().build();
+
+        } catch (Exception e) {
+            return Response.serverError()
+                    .entity("Error al eliminar el producto")
+                    .build();
+        }
+    }
+
+    // Validar los datos recibidos
+    private Response validarProducto(ProductoDTO dto) {
+
+        if (dto == null
+                || dto.getNombre() == null
+                || dto.getNombre().trim().isEmpty()) {
+
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El nombre del producto es obligatorio")
+                    .build();
+        }
+
+        if (dto.getNombre().trim().length() > 150) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El nombre no puede superar los 150 caracteres")
+                    .build();
+        }
+
+        if (dto.getPrecio() <= 0
+                || !Double.isFinite(dto.getPrecio())) {
+
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El precio debe ser un número mayor que cero")
+                    .build();
+        }
+
+        if (dto.getStock() < 0) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("El stock no puede ser negativo")
+                    .build();
+        }
+
+        return null;
+    }
+
+    // Buscar categoría asociada al producto
+    private Categoria obtenerCategoria(Integer categoriaId) {
+
+        if (categoriaId == null) {
+            return null;
+        }
+
+        return categoriaDAO.obtenerPorId(categoriaId);
+    }
+
+    // Convertir entidad Producto a ProductoDTO
+    private ProductoDTO convertirDTO(Producto producto) {
+
+        Integer categoriaId = null;
+        String categoriaNombre = null;
+
+        if (producto.getCategoria() != null) {
+            categoriaId = producto.getCategoria().getId();
+            categoriaNombre = producto.getCategoria().getNombre();
+        }
+
+        return new ProductoDTO(
+                producto.getId(),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getPrecio(),
+                producto.getStock(),
+                categoriaId,
+                categoriaNombre
+        );
+    }
+}
