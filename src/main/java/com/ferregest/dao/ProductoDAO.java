@@ -130,6 +130,60 @@ public class ProductoDAO {
     }
 
     /**
+     * Lista todos los productos que pertenecen a una categoría específica.
+     * Carga de forma anticipada (LEFT JOIN FETCH) la relación con Categoria.
+     *
+     * @param categoriaId Identificador único de la categoría
+     * @return Lista de entidades Producto asociadas a dicha categoría
+     */
+    public List<Producto> listarPorCategoria(int categoriaId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Producto> query = em.createQuery(
+                "SELECT p FROM Producto p LEFT JOIN FETCH p.categoria WHERE p.categoria.id = :categoriaId ORDER BY p.id ASC",
+                Producto.class
+            );
+            query.setParameter("categoriaId", categoriaId);
+            return query.getResultList();
+        } catch (Exception e) {
+            System.err.println("Error al listar productos por categoría con JPA: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+    /**
+     * Busca productos cuyo nombre coincida de forma parcial con el término proporcionado.
+     * La búsqueda es insensible a mayúsculas/minúsculas.
+     *
+     * @param termino Texto a buscar en el nombre del producto
+     * @return Lista de entidades Producto que coinciden con el criterio
+     */
+    public List<Producto> buscarPorNombre(String termino) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Producto> query = em.createQuery(
+                "SELECT p FROM Producto p LEFT JOIN FETCH p.categoria WHERE LOWER(p.nombre) LIKE LOWER(:termino) ORDER BY p.id ASC",
+                Producto.class
+            );
+            query.setParameter("termino", "%" + (termino != null ? termino.trim() : "") + "%");
+            return query.getResultList();
+        } catch (Exception e) {
+            System.err.println("Error al buscar productos por nombre con JPA: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+    }
+
+    /**
      * Elimina un producto de la base de datos según su identificador.
      *
      * @param id Clave primaria del producto a eliminar
