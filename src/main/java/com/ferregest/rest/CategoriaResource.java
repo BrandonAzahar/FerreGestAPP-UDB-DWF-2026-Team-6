@@ -2,25 +2,27 @@ package com.ferregest.rest;
 
 import com.ferregest.dao.CategoriaDAO;
 import com.ferregest.dao.ProductoDAO;
-import com.ferregest.dto.CategoriaDTO;
-import com.ferregest.dto.MensajeRespuesta;
-import com.ferregest.dto.ProductoDTO;
 import com.ferregest.model.Categoria;
 import com.ferregest.model.Producto;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Recurso REST para la gestión de Categorías (Fase 3 - Integrante 3).
- * Expone endpoints con los verbos HTTP GET, POST, PUT y DELETE en formato JSON,
- * integrándose con CategoriaDAO y ProductoDAO a través de JPA/Hibernate.
+ * Recurso REST para la gestión de Categorías (Fase 3 - Sprint 3).
+ * Expone endpoints con JAX-RS (Jersey) y serialización JSON mediante Jackson,
+ * reutilizando CategoriaDAO y ProductoDAO con JPA/Hibernate.
  */
 @Path("/categorias")
 @Produces(MediaType.APPLICATION_JSON)
@@ -30,319 +32,233 @@ public class CategoriaResource {
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
     private final ProductoDAO productoDAO = new ProductoDAO();
 
-    @Context
-    private UriInfo uriInfo;
-
     /**
      * GET /api/categorias
-     * Lista todas las categorías registradas con el conteo de productos asociados.
+     * Obtiene la lista completa de categorías registradas.
      *
-     * @return 200 OK con la lista de CategoriaDTO en formato JSON, o 500 Internal Server Error
+     * @return Response 200 (OK) con la lista de categorías o 500 (Internal Server Error)
      */
     @GET
     public Response listar() {
         try {
             List<Categoria> categorias = categoriaDAO.listar();
-            List<CategoriaDTO> resultado = new ArrayList<>();
-
-            for (Categoria categoria : categorias) {
-                long totalProds = categoriaDAO.contarProductos(categoria.getId());
-                resultado.add(convertirDTO(categoria, totalProds));
-            }
-
-            return Response.ok(resultado).build();
+            return Response.status(Response.Status.OK).entity(categorias).build();
         } catch (Exception e) {
-            System.err.println("Error en GET /api/categorias: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al consultar las categorías", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al listar las categorías: " + e.getMessage());
         }
     }
 
     /**
      * GET /api/categorias/{id}
-     * Obtiene los detalles de una categoría específica por su ID.
+     * Busca una categoría específica por su identificador.
      *
-     * @param id Identificador numérico de la categoría
-     * @return 200 OK con CategoriaDTO, 400 Bad Request si el ID es inválido, o 404 Not Found
+     * @param id ID de la categoría
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @GET
     @Path("/{id}")
     public Response obtenerPorId(@PathParam("id") int id) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID de la categoría debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID de la categoría debe ser un número entero mayor que cero.");
         }
 
         try {
             Categoria categoria = categoriaDAO.obtenerPorId(id);
-
             if (categoria == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró ninguna categoría con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró la categoría con ID " + id + ".");
             }
-
-            long totalProds = categoriaDAO.contarProductos(categoria.getId());
-            return Response.ok(convertirDTO(categoria, totalProds)).build();
+            return Response.status(Response.Status.OK).entity(categoria).build();
         } catch (Exception e) {
-            System.err.println("Error en GET /api/categorias/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al consultar la categoría", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al consultar la categoría: " + e.getMessage());
         }
     }
 
     /**
      * GET /api/categorias/{id}/productos
-     * Lista todos los productos que pertenecen a una categoría específica.
+     * Lista todos los productos asociados a una categoría específica.
      *
-     * @param id Identificador de la categoría
-     * @return 200 OK con List de ProductoDTO, 400 si el ID es inválido, o 404 si la categoría no existe
+     * @param id ID de la categoría
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @GET
     @Path("/{id}/productos")
     public Response listarProductosPorCategoria(@PathParam("id") int id) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID de la categoría debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID de la categoría debe ser un número entero mayor que cero.");
         }
 
         try {
             Categoria categoria = categoriaDAO.obtenerPorId(id);
             if (categoria == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró la categoría con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró la categoría con ID " + id + ".");
             }
-
             List<Producto> productos = productoDAO.listarPorCategoria(id);
-            List<ProductoDTO> resultado = new ArrayList<>();
-            for (Producto p : productos) {
-                resultado.add(convertirProductoDTO(p));
-            }
-
-            return Response.ok(resultado).build();
+            return Response.status(Response.Status.OK).entity(productos).build();
         } catch (Exception e) {
-            System.err.println("Error en GET /api/categorias/" + id + "/productos: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al listar productos de la categoría", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno al listar los productos de la categoría: " + e.getMessage());
         }
     }
 
     /**
      * POST /api/categorias
-     * Registra una nueva categoría en el sistema.
+     * Crea una nueva categoría validando que los datos obligatorios no estén vacíos.
      *
-     * @param dto Datos de la categoría enviada en el cuerpo JSON
-     * @return 201 Created con cabecera Location y el CategoriaDTO creado, 400 Bad Request o 409 Conflict
+     * @param categoria Entidad Categoria deserializada desde JSON
+     * @return Response 201 (Created), 400 (Bad Request) o 500 (Internal Server Error)
      */
     @POST
-    public Response insertar(CategoriaDTO dto) {
-        if (dto == null || dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre de la categoría es obligatorio y no puede estar vacío", 400))
-                    .build();
+    public Response insertar(Categoria categoria) {
+        if (categoria == null || categoria.getNombre() == null || categoria.getNombre().trim().isEmpty()) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre de la categoría es obligatorio y no puede estar vacío.");
         }
 
-        String nombre = dto.getNombre().trim();
-
-        if (nombre.length() > 100) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre de la categoría no puede exceder los 100 caracteres", 400))
-                    .build();
+        String nombreLimpio = categoria.getNombre().trim();
+        if (nombreLimpio.length() > 100) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre de la categoría no puede superar los 100 caracteres.");
         }
 
         try {
-            if (categoriaDAO.existeNombre(nombre, 0)) {
-                return Response.status(Response.Status.CONFLICT)
-                        .entity(new MensajeRespuesta(false, "Ya existe una categoría registrada con el nombre '" + nombre + "'", 409))
-                        .build();
+            if (categoriaDAO.existeNombre(nombreLimpio, 0)) {
+                return crearRespuestaError(Response.Status.BAD_REQUEST,
+                        "Ya existe una categoría registrada con el nombre '" + nombreLimpio + "'.");
             }
 
-            String descripcion = (dto.getDescripcion() != null && !dto.getDescripcion().trim().isEmpty())
-                    ? dto.getDescripcion().trim()
-                    : null;
-
-            Categoria categoria = new Categoria(nombre, descripcion);
-
-            if (!categoriaDAO.insertar(categoria)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo registrar la categoría en la base de datos", 500))
-                        .build();
+            categoria.setNombre(nombreLimpio);
+            if (categoria.getDescripcion() != null) {
+                String desc = categoria.getDescripcion().trim();
+                categoria.setDescripcion(desc.isEmpty() ? null : desc);
             }
 
-            CategoriaDTO respuesta = convertirDTO(categoria, 0L);
+            boolean insertado = categoriaDAO.insertar(categoria);
+            if (!insertado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible guardar la categoría en la base de datos.");
+            }
 
-            URI uriCreada = (uriInfo != null)
-                    ? uriInfo.getAbsolutePathBuilder().path(String.valueOf(categoria.getId())).build()
-                    : URI.create("/api/categorias/" + categoria.getId());
-
-            return Response.created(uriCreada)
-                    .entity(respuesta)
-                    .build();
-
+            return Response.status(Response.Status.CREATED).entity(categoria).build();
         } catch (Exception e) {
-            System.err.println("Error en POST /api/categorias: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al registrar la categoría", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al crear la categoría: " + e.getMessage());
         }
     }
 
     /**
      * PUT /api/categorias/{id}
-     * Actualiza una categoría existente.
+     * Actualiza una categoría existente por su identificador.
      *
-     * @param id  Identificador de la categoría a actualizar
-     * @param dto Datos actualizados de la categoría
-     * @return 200 OK con CategoriaDTO actualizado, 400 Bad Request, 404 Not Found o 409 Conflict
+     * @param id        ID de la categoría a modificar
+     * @param categoria Datos actualizados de la categoría
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @PUT
     @Path("/{id}")
-    public Response actualizar(@PathParam("id") int id, CategoriaDTO dto) {
+    public Response actualizar(@PathParam("id") int id, Categoria categoria) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID de la categoría debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID de la categoría debe ser un número entero mayor que cero.");
         }
 
-        if (dto == null || dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre de la categoría es obligatorio", 400))
-                    .build();
+        if (categoria == null || categoria.getNombre() == null || categoria.getNombre().trim().isEmpty()) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre de la categoría es obligatorio y no puede estar vacío.");
         }
 
-        String nombre = dto.getNombre().trim();
-
-        if (nombre.length() > 100) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre no puede exceder los 100 caracteres", 400))
-                    .build();
+        String nombreLimpio = categoria.getNombre().trim();
+        if (nombreLimpio.length() > 100) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre de la categoría no puede superar los 100 caracteres.");
         }
 
         try {
             Categoria existente = categoriaDAO.obtenerPorId(id);
-
             if (existente == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró la categoría con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró la categoría con ID " + id + " para actualizar.");
             }
 
-            if (categoriaDAO.existeNombre(nombre, id)) {
-                return Response.status(Response.Status.CONFLICT)
-                        .entity(new MensajeRespuesta(false, "Ya existe otra categoría registrada con el nombre '" + nombre + "'", 409))
-                        .build();
+            if (categoriaDAO.existeNombre(nombreLimpio, id)) {
+                return crearRespuestaError(Response.Status.BAD_REQUEST,
+                        "Ya existe otra categoría con el nombre '" + nombreLimpio + "'.");
             }
 
-            String descripcion = (dto.getDescripcion() != null && !dto.getDescripcion().trim().isEmpty())
-                    ? dto.getDescripcion().trim()
-                    : null;
-
-            existente.setNombre(nombre);
-            existente.setDescripcion(descripcion);
-
-            if (!categoriaDAO.actualizar(existente)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo actualizar la categoría en la base de datos", 500))
-                        .build();
+            existente.setNombre(nombreLimpio);
+            if (categoria.getDescripcion() != null) {
+                String desc = categoria.getDescripcion().trim();
+                existente.setDescripcion(desc.isEmpty() ? null : desc);
+            } else {
+                existente.setDescripcion(null);
             }
 
-            long totalProds = categoriaDAO.contarProductos(existente.getId());
-            return Response.ok(convertirDTO(existente, totalProds)).build();
+            boolean actualizado = categoriaDAO.actualizar(existente);
+            if (!actualizado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible actualizar la categoría en la base de datos.");
+            }
 
+            return Response.status(Response.Status.OK).entity(existente).build();
         } catch (Exception e) {
-            System.err.println("Error en PUT /api/categorias/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al actualizar la categoría", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al actualizar la categoría: " + e.getMessage());
         }
     }
 
     /**
      * DELETE /api/categorias/{id}
-     * Elimina una categoría por su ID. Desvincula de forma segura los productos asignados.
+     * Elimina una categoría existente por su identificador.
      *
-     * @param id Identificador de la categoría a eliminar
-     * @return 200 OK con MensajeRespuesta descriptivo, 400 Bad Request o 404 Not Found
+     * @param id ID de la categoría a eliminar
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @DELETE
     @Path("/{id}")
     public Response eliminar(@PathParam("id") int id) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID de la categoría debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID de la categoría debe ser un número entero mayor que cero.");
         }
 
         try {
             Categoria existente = categoriaDAO.obtenerPorId(id);
-
             if (existente == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró la categoría con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró la categoría con ID " + id + " para eliminar.");
             }
 
-            long prodsAfectados = categoriaDAO.contarProductos(id);
-
-            if (!categoriaDAO.eliminar(id)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo eliminar la categoría de la base de datos", 500))
-                        .build();
+            boolean eliminado = categoriaDAO.eliminar(id);
+            if (!eliminado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible eliminar la categoría de la base de datos.");
             }
 
-            String detalle = prodsAfectados > 0
-                    ? "Categoría '" + existente.getNombre() + "' eliminada exitosamente. " + prodsAfectados + " producto(s) quedaron sin categoría."
-                    : "Categoría '" + existente.getNombre() + "' eliminada exitosamente.";
-
-            return Response.ok(new MensajeRespuesta(true, detalle, 200)).build();
-
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("exito", true);
+            respuesta.put("codigo", Response.Status.OK.getStatusCode());
+            respuesta.put("mensaje", "Categoría '" + existente.getNombre() + "' eliminada correctamente.");
+            return Response.status(Response.Status.OK).entity(respuesta).build();
         } catch (Exception e) {
-            System.err.println("Error en DELETE /api/categorias/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al eliminar la categoría", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al eliminar la categoría: " + e.getMessage());
         }
     }
 
-    // Métodos auxiliares de conversión a DTO
-    private CategoriaDTO convertirDTO(Categoria categoria, Long totalProductos) {
-        return new CategoriaDTO(
-                categoria.getId(),
-                categoria.getNombre(),
-                categoria.getDescripcion(),
-                totalProductos
-        );
-    }
-
-    private ProductoDTO convertirProductoDTO(Producto producto) {
-        Integer categoriaId = null;
-        String categoriaNombre = null;
-
-        if (producto.getCategoria() != null) {
-            categoriaId = producto.getCategoria().getId();
-            categoriaNombre = producto.getCategoria().getNombre();
-        }
-
-        return new ProductoDTO(
-                producto.getId(),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getPrecio(),
-                producto.getStock(),
-                categoriaId,
-                categoriaNombre
-        );
+    /**
+     * Construye una respuesta HTTP estandarizada en formato JSON para errores.
+     */
+    private Response crearRespuestaError(Response.Status status, String mensaje) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("exito", false);
+        error.put("codigo", status.getStatusCode());
+        error.put("mensaje", mensaje);
+        error.put("error", mensaje);
+        return Response.status(status).entity(error).build();
     }
 }

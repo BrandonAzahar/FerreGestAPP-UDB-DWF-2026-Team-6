@@ -1,5 +1,6 @@
 package com.ferregest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -39,6 +40,7 @@ public class Categoria implements Serializable {
     // borrar una categoría también se borraran TODOS sus productos (pérdida de datos).
     // Ahora CategoriaDAO.eliminar() desvincula los productos (categoria = NULL) antes de borrar,
     // respetando el "ON DELETE SET NULL" definido en database/ferregest.sql.
+    @JsonIgnore
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Producto> productos = new ArrayList<>();
 

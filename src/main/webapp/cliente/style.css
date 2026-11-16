@@ -1,0 +1,99 @@
+/* ==========================================================================
+   FerreGest - Hoja de estilos del Cliente Externo REST (Fase 3)
+   ========================================================================== */
+
+:root {
+    --ferregest-navy: #1e293b;
+    --ferregest-dark: #0f172a;
+    --ferregest-amber: #f59e0b;
+    --ferregest-amber-hover: #d97706;
+    --ferregest-bg: #f8fafc;
+}
+
+body {
+    background-color: var(--ferregest-bg);
+    color: #1e293b;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Barra superior */
+.bg-ferregest {
+    background: linear-gradient(135deg, var(--ferregest-dark) 0%, var(--ferregest-navy) 100%);
+}
+
+/* Botón corporativo */
+.btn-ferregest {
+    background-color: var(--ferregest-amber);
+    border-color: var(--ferregest-amber);
+    color: #0f172a;
+}
+
+.btn-ferregest:hover,
+.btn-ferregest:focus {
+    background-color: var(--ferregest-amber-hover);
+    border-color: var(--ferregest-amber-hover);
+    color: #ffffff;
+}
+
+/* Tarjetas KPI */
+.kpi-card {
+    border-radius: 0.75rem;
+    transition: transform 0.15s ease-in-out;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+}
+
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+/* Pestañas de navegación */
+#modulosTab .nav-link {
+    border: none;
+    border-radius: 0.5rem;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+#modulosTab .nav-link.active {
+    background-color: var(--ferregest-navy);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+#modulosTab .nav-link.active code {
+    color: #fde68a;
+}
+
+/* Tablas */
+.table > :not(caption) > * > * {
+    padding: 0.85rem 1rem;
+}
+
+.table thead th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+    font-weight: 700;
+}
+
+/* Resaltado cuando una fila está en modo edición */
+.fila-editando {
+    background-color: #fef3c7 !important;
+}

@@ -1,5 +1,6 @@
 package com.ferregest.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -40,6 +41,7 @@ public class Producto implements Serializable {
     private int stock;
 
     // Relación Muchos a Uno: Varios productos pertenecen a una misma categoría
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "categoria_id", referencedColumnName = "id", nullable = true)
     private Categoria categoria;

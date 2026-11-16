@@ -2,24 +2,28 @@ package com.ferregest.rest;
 
 import com.ferregest.dao.CategoriaDAO;
 import com.ferregest.dao.ProductoDAO;
-import com.ferregest.dto.MensajeRespuesta;
-import com.ferregest.dto.ProductoDTO;
 import com.ferregest.model.Categoria;
 import com.ferregest.model.Producto;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Recurso REST para la gestión de Productos (Fase 3 - Integrante 3).
- * Expone endpoints con los verbos HTTP GET, POST, PUT y DELETE en formato JSON,
- * integrándose con ProductoDAO y CategoriaDAO con persistencia JPA/Hibernate.
+ * Recurso REST para la gestión de Productos (Fase 3 - Sprint 3).
+ * Expone endpoints con JAX-RS (Jersey) y serialización JSON mediante Jackson,
+ * reutilizando ProductoDAO y CategoriaDAO con JPA/Hibernate.
  */
 @Path("/productos")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,18 +33,14 @@ public class ProductoResource {
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
 
-    @Context
-    private UriInfo uriInfo;
-
     /**
      * GET /api/productos
-     * Lista todos los productos. Admite filtrado opcional mediante parámetros de consulta:
-     * - ?categoriaId={id}: filtra productos pertenecientes a esa categoría.
-     * - ?buscar={termino}: filtra productos cuyo nombre coincida con el texto de búsqueda.
+     * Lista todos los productos del inventario, permitiendo filtrar opcionalmente
+     * por categoría (?categoriaId=) o por término de búsqueda (?buscar=).
      *
-     * @param categoriaId (Opcional) ID de categoría a filtrar
-     * @param buscar      (Opcional) Término de búsqueda en el nombre
-     * @return 200 OK con la lista de ProductoDTO en formato JSON
+     * @param categoriaId ID opcional de la categoría para filtrar
+     * @param buscar      Término opcional de búsqueda por nombre
+     * @return Response 200 (OK) con la lista de productos o 500 (Internal Server Error)
      */
     @GET
     public Response listar(
@@ -48,7 +48,6 @@ public class ProductoResource {
             @QueryParam("buscar") String buscar) {
         try {
             List<Producto> productos;
-
             if (categoriaId != null && categoriaId > 0) {
                 productos = productoDAO.listarPorCategoria(categoriaId);
             } else if (buscar != null && !buscar.trim().isEmpty()) {
@@ -56,372 +55,230 @@ public class ProductoResource {
             } else {
                 productos = productoDAO.listar();
             }
-
-            List<ProductoDTO> resultado = new ArrayList<>();
-            for (Producto producto : productos) {
-                resultado.add(convertirDTO(producto));
-            }
-
-            return Response.ok(resultado).build();
-
+            return Response.status(Response.Status.OK).entity(productos).build();
         } catch (Exception e) {
-            System.err.println("Error en GET /api/productos: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al consultar los productos", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al listar los productos: " + e.getMessage());
         }
     }
 
     /**
      * GET /api/productos/{id}
-     * Obtiene el detalle completo de un producto por su identificador primario.
+     * Obtiene un producto específico por su identificador único.
      *
-     * @param id Identificador numérico del producto
-     * @return 200 OK con ProductoDTO, 400 Bad Request si el ID es inválido, o 404 Not Found
+     * @param id ID del producto
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @GET
     @Path("/{id}")
     public Response obtenerPorId(@PathParam("id") int id) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID del producto debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID del producto debe ser un número entero mayor que cero.");
         }
 
         try {
             Producto producto = productoDAO.obtenerPorId(id);
-
             if (producto == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró ningún producto con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró el producto con ID " + id + ".");
             }
-
-            return Response.ok(convertirDTO(producto)).build();
-
+            return Response.status(Response.Status.OK).entity(producto).build();
         } catch (Exception e) {
-            System.err.println("Error en GET /api/productos/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al consultar el producto", 500))
-                    .build();
-        }
-    }
-
-    /**
-     * GET /api/productos/categoria/{categoriaId}
-     * Ruta explícita para listar productos filtrados por una categoría específica.
-     *
-     * @param categoriaId Identificador de la categoría
-     * @return 200 OK con List de ProductoDTO, 400 si el ID es inválido, o 404 si la categoría no existe
-     */
-    @GET
-    @Path("/categoria/{categoriaId}")
-    public Response listarPorCategoria(@PathParam("categoriaId") int categoriaId) {
-        if (categoriaId <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID de la categoría debe ser mayor que cero", 400))
-                    .build();
-        }
-
-        try {
-            Categoria categoria = categoriaDAO.obtenerPorId(categoriaId);
-            if (categoria == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró la categoría con el ID " + categoriaId, 404))
-                        .build();
-            }
-
-            List<Producto> productos = productoDAO.listarPorCategoria(categoriaId);
-            List<ProductoDTO> resultado = new ArrayList<>();
-            for (Producto p : productos) {
-                resultado.add(convertirDTO(p));
-            }
-
-            return Response.ok(resultado).build();
-
-        } catch (Exception e) {
-            System.err.println("Error en GET /api/productos/categoria/" + categoriaId + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al filtrar productos por categoría", 500))
-                    .build();
-        }
-    }
-
-    /**
-     * GET /api/productos/buscar
-     * Ruta explícita para búsqueda por nombre en tiempo real para el cliente consumidor.
-     *
-     * @param termino Texto a buscar en el nombre (parámetros 'nombre' o 'q')
-     * @return 200 OK con List de ProductoDTO
-     */
-    @GET
-    @Path("/buscar")
-    public Response buscarPorNombre(
-            @QueryParam("nombre") String nombre,
-            @QueryParam("q") String q) {
-        String termino = (nombre != null && !nombre.trim().isEmpty()) ? nombre : q;
-
-        try {
-            List<Producto> productos = (termino != null && !termino.trim().isEmpty())
-                    ? productoDAO.buscarPorNombre(termino.trim())
-                    : productoDAO.listar();
-
-            List<ProductoDTO> resultado = new ArrayList<>();
-            for (Producto p : productos) {
-                resultado.add(convertirDTO(p));
-            }
-
-            return Response.ok(resultado).build();
-
-        } catch (Exception e) {
-            System.err.println("Error en GET /api/productos/buscar: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al buscar productos", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al consultar el producto: " + e.getMessage());
         }
     }
 
     /**
      * POST /api/productos
-     * Registra un nuevo producto en el catálogo.
+     * Registra un nuevo producto validando que no contenga datos vacíos o fuera de rango.
      *
-     * @param dto Datos del producto en formato JSON
-     * @return 201 Created con cabecera Location y ProductoDTO, o 400 Bad Request
+     * @param producto Entidad Producto deserializada desde JSON
+     * @return Response 201 (Created), 400 (Bad Request) o 500 (Internal Server Error)
      */
     @POST
-    public Response insertar(ProductoDTO dto) {
-        Response errorValidacion = validarProducto(dto);
+    public Response insertar(Producto producto) {
+        Response errorValidacion = validarDatosProducto(producto);
         if (errorValidacion != null) {
             return errorValidacion;
         }
 
         try {
-            Categoria categoria = null;
-            if (dto.getCategoriaId() != null && dto.getCategoriaId() > 0) {
-                categoria = categoriaDAO.obtenerPorId(dto.getCategoriaId());
+            Integer catId = producto.getCategoriaId();
+            if (catId != null && catId > 0) {
+                Categoria categoria = categoriaDAO.obtenerPorId(catId);
                 if (categoria == null) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                            .entity(new MensajeRespuesta(false, "La categoría indicada (ID " + dto.getCategoriaId() + ") no existe", 400))
-                            .build();
+                    return crearRespuestaError(Response.Status.BAD_REQUEST,
+                            "La categoría especificada con ID " + catId + " no existe.");
                 }
+                producto.setCategoria(categoria);
+            } else {
+                producto.setCategoria(null);
             }
 
-            String descripcion = (dto.getDescripcion() != null && !dto.getDescripcion().trim().isEmpty())
-                    ? dto.getDescripcion().trim()
-                    : null;
-
-            Producto producto = new Producto(
-                    dto.getNombre().trim(),
-                    descripcion,
-                    dto.getPrecio(),
-                    dto.getStock(),
-                    categoria
-            );
-
-            if (!productoDAO.insertar(producto)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo registrar el producto en la base de datos", 500))
-                        .build();
+            producto.setNombre(producto.getNombre().trim());
+            if (producto.getDescripcion() != null) {
+                String desc = producto.getDescripcion().trim();
+                producto.setDescripcion(desc.isEmpty() ? null : desc);
             }
 
-            ProductoDTO respuestaDTO = convertirDTO(producto);
+            boolean insertado = productoDAO.insertar(producto);
+            if (!insertado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible guardar el producto en la base de datos.");
+            }
 
-            URI uriCreada = (uriInfo != null)
-                    ? uriInfo.getAbsolutePathBuilder().path(String.valueOf(producto.getId())).build()
-                    : URI.create("/api/productos/" + producto.getId());
-
-            return Response.created(uriCreada)
-                    .entity(respuestaDTO)
-                    .build();
-
+            return Response.status(Response.Status.CREATED).entity(producto).build();
         } catch (Exception e) {
-            System.err.println("Error en POST /api/productos: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al registrar el producto", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al registrar el producto: " + e.getMessage());
         }
     }
 
     /**
      * PUT /api/productos/{id}
-     * Actualiza la información completa de un producto existente.
+     * Actualiza un producto existente por su identificador.
      *
-     * @param id  Identificador único del producto
-     * @param dto Nuevos valores del producto
-     * @return 200 OK con ProductoDTO actualizado, 400 Bad Request o 404 Not Found
+     * @param id       ID del producto a actualizar
+     * @param producto Datos actualizados del producto
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @PUT
     @Path("/{id}")
-    public Response actualizar(@PathParam("id") int id, ProductoDTO dto) {
+    public Response actualizar(@PathParam("id") int id, Producto producto) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID del producto debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID del producto debe ser un número entero mayor que cero.");
         }
 
-        Response errorValidacion = validarProducto(dto);
+        Response errorValidacion = validarDatosProducto(producto);
         if (errorValidacion != null) {
             return errorValidacion;
         }
 
         try {
             Producto existente = productoDAO.obtenerPorId(id);
-
             if (existente == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró ningún producto con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró el producto con ID " + id + " para actualizar.");
             }
 
-            Categoria categoria = null;
-            if (dto.getCategoriaId() != null && dto.getCategoriaId() > 0) {
-                categoria = categoriaDAO.obtenerPorId(dto.getCategoriaId());
+            Integer catId = producto.getCategoriaId();
+            if (catId != null && catId > 0) {
+                Categoria categoria = categoriaDAO.obtenerPorId(catId);
                 if (categoria == null) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                            .entity(new MensajeRespuesta(false, "La categoría indicada (ID " + dto.getCategoriaId() + ") no existe", 400))
-                            .build();
+                    return crearRespuestaError(Response.Status.BAD_REQUEST,
+                            "La categoría especificada con ID " + catId + " no existe.");
                 }
+                existente.setCategoria(categoria);
+            } else {
+                existente.setCategoria(null);
             }
 
-            String descripcion = (dto.getDescripcion() != null && !dto.getDescripcion().trim().isEmpty())
-                    ? dto.getDescripcion().trim()
-                    : null;
+            existente.setNombre(producto.getNombre().trim());
+            if (producto.getDescripcion() != null) {
+                String desc = producto.getDescripcion().trim();
+                existente.setDescripcion(desc.isEmpty() ? null : desc);
+            } else {
+                existente.setDescripcion(null);
+            }
+            existente.setPrecio(producto.getPrecio());
+            existente.setStock(producto.getStock());
 
-            existente.setNombre(dto.getNombre().trim());
-            existente.setDescripcion(descripcion);
-            existente.setPrecio(dto.getPrecio());
-            existente.setStock(dto.getStock());
-            existente.setCategoria(categoria);
-
-            if (!productoDAO.actualizar(existente)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo actualizar el producto en la base de datos", 500))
-                        .build();
+            boolean actualizado = productoDAO.actualizar(existente);
+            if (!actualizado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible actualizar el producto en la base de datos.");
             }
 
-            return Response.ok(convertirDTO(existente)).build();
-
+            return Response.status(Response.Status.OK).entity(existente).build();
         } catch (Exception e) {
-            System.err.println("Error en PUT /api/productos/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al actualizar el producto", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al actualizar el producto: " + e.getMessage());
         }
     }
 
     /**
      * DELETE /api/productos/{id}
-     * Elimina un producto por su clave primaria.
+     * Elimina un producto existente por su identificador.
      *
-     * @param id Identificador del producto a eliminar
-     * @return 200 OK con confirmación en MensajeRespuesta, 400 Bad Request o 404 Not Found
+     * @param id ID del producto a eliminar
+     * @return Response 200 (OK), 400 (Bad Request), 404 (Not Found) o 500 (Internal Server Error)
      */
     @DELETE
     @Path("/{id}")
     public Response eliminar(@PathParam("id") int id) {
         if (id <= 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El ID del producto debe ser un número entero mayor que cero", 400))
-                    .build();
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El ID del producto debe ser un número entero mayor que cero.");
         }
 
         try {
             Producto existente = productoDAO.obtenerPorId(id);
-
             if (existente == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new MensajeRespuesta(false, "No se encontró ningún producto con el ID " + id, 404))
-                        .build();
+                return crearRespuestaError(Response.Status.NOT_FOUND,
+                        "No se encontró el producto con ID " + id + " para eliminar.");
             }
 
-            if (!productoDAO.eliminar(id)) {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(new MensajeRespuesta(false, "No se pudo eliminar el producto de la base de datos", 500))
-                        .build();
+            boolean eliminado = productoDAO.eliminar(id);
+            if (!eliminado) {
+                return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                        "No fue posible eliminar el producto de la base de datos.");
             }
 
-            return Response.ok(
-                    new MensajeRespuesta(true, "Producto '" + existente.getNombre() + "' (ID: " + id + ") eliminado exitosamente", 200)
-            ).build();
-
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("exito", true);
+            respuesta.put("codigo", Response.Status.OK.getStatusCode());
+            respuesta.put("mensaje", "Producto '" + existente.getNombre() + "' eliminado correctamente.");
+            return Response.status(Response.Status.OK).entity(respuesta).build();
         } catch (Exception e) {
-            System.err.println("Error en DELETE /api/productos/" + id + ": " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new MensajeRespuesta(false, "Error interno al eliminar el producto", 500))
-                    .build();
+            return crearRespuestaError(Response.Status.INTERNAL_SERVER_ERROR,
+                    "Error interno del servidor al eliminar el producto: " + e.getMessage());
         }
     }
 
     /**
-     * Valida los datos recibidos en el DTO de producto según las reglas de negocio.
-     *
-     * @param dto ProductoDTO a validar
-     * @return Response con estado 400 si hay error de validación, o null si los datos son correctos
+     * Valida que los campos obligatorios del producto no estén vacíos y cumplan las reglas de negocio.
      */
-    private Response validarProducto(ProductoDTO dto) {
-        if (dto == null) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El cuerpo de la solicitud no puede estar vacío", 400))
-                    .build();
+    private Response validarDatosProducto(Producto producto) {
+        if (producto == null) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "Los datos del producto son obligatorios y no pueden estar vacíos.");
         }
 
-        if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre del producto es obligatorio y no puede estar vacío", 400))
-                    .build();
+        if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre del producto es obligatorio y no puede estar vacío.");
         }
 
-        if (dto.getNombre().trim().length() > 150) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El nombre del producto no puede exceder los 150 caracteres", 400))
-                    .build();
+        if (producto.getNombre().trim().length() > 150) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El nombre del producto no puede exceder los 150 caracteres.");
         }
 
-        if (dto.getPrecio() <= 0 || !Double.isFinite(dto.getPrecio())) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El precio del producto debe ser un número válido mayor que cero", 400))
-                    .build();
+        if (Double.isNaN(producto.getPrecio()) || Double.isInfinite(producto.getPrecio()) || producto.getPrecio() <= 0) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El precio del producto debe ser un valor numérico mayor que cero.");
         }
 
-        if (dto.getStock() < 0) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new MensajeRespuesta(false, "El stock disponible no puede ser un valor negativo", 400))
-                    .build();
+        if (producto.getStock() < 0) {
+            return crearRespuestaError(Response.Status.BAD_REQUEST,
+                    "El stock del producto no puede ser negativo.");
         }
 
         return null;
     }
 
     /**
-     * Convierte una entidad JPA Producto a su correspondiente ProductoDTO desacoplado.
-     *
-     * @param producto Entidad de base de datos
-     * @return ProductoDTO apto para serializar a JSON
+     * Construye una respuesta HTTP estandarizada en formato JSON para errores.
      */
-    private ProductoDTO convertirDTO(Producto producto) {
-        Integer categoriaId = null;
-        String categoriaNombre = null;
-
-        if (producto.getCategoria() != null) {
-            categoriaId = producto.getCategoria().getId();
-            categoriaNombre = producto.getCategoria().getNombre();
-        }
-
-        return new ProductoDTO(
-                producto.getId(),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getPrecio(),
-                producto.getStock(),
-                categoriaId,
-                categoriaNombre
-        );
+    private Response crearRespuestaError(Response.Status status, String mensaje) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("exito", false);
+        error.put("codigo", status.getStatusCode());
+        error.put("mensaje", mensaje);
+        error.put("error", mensaje);
+        return Response.status(status).entity(error).build();
     }
 }
