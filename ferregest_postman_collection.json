@@ -1,0 +1,313 @@
+{
+  "info": {
+    "_postman_id": "a7f8c9b0-3e4d-4c2a-9f1b-6d5e8a2c4b11",
+    "name": "FerreGest - API REST (Fase 3 / Sprint 3)",
+    "description": "Colección de Postman para probar los endpoints RESTful de Categorías (/api/categorias) y Productos (/api/productos) de FerreGest construidos con JAX-RS (Jersey) y Jackson.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/ferregest/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Categorías (/api/categorias)",
+      "item": [
+        {
+          "name": "1. Listar todas las categorías (GET 200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias"]
+            }
+          }
+        },
+        {
+          "name": "2. Obtener categoría por ID (GET 200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias", "1"]
+            }
+          }
+        },
+        {
+          "name": "3. Obtener categoría inexistente (GET 404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias", "9999"]
+            }
+          }
+        },
+        {
+          "name": "4. Crear nueva categoría (POST 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Seguridad Industrial\",\n  \"descripcion\": \"Cascos, guantes, botas dieléctricas y gafas de protección\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias"]
+            }
+          }
+        },
+        {
+          "name": "5. Crear categoría con nombre vacío (POST 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"   \",\n  \"descripcion\": \"Prueba de validación de datos vacíos\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias"]
+            }
+          }
+        },
+        {
+          "name": "6. Actualizar categoría existente (PUT 200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Herramientas Manuales Pro\",\n  \"descripcion\": \"Martillos, destornilladores, llaves y alicates de uso profesional\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias", "1"]
+            }
+          }
+        },
+        {
+          "name": "7. Eliminar categoría por ID (DELETE 200)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categorias/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias", "5"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Productos (/api/productos)",
+      "item": [
+        {
+          "name": "1. Listar todos los productos (GET 200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "2. Obtener producto por ID (GET 200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "1"]
+            }
+          }
+        },
+        {
+          "name": "3. Obtener producto inexistente (GET 404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "9999"]
+            }
+          }
+        },
+        {
+          "name": "4. Crear nuevo producto (POST 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Esmeriladora Angular 4.5 Pulgadas 850W\",\n  \"descripcion\": \"Esmeriladora compacta de 11000 RPM para corte y desbaste\",\n  \"precio\": 54.99,\n  \"stock\": 18,\n  \"categoriaId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "5. Crear producto inválido (POST 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"precio\": -10.0,\n  \"stock\": -1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos"]
+            }
+          }
+        },
+        {
+          "name": "6. Actualizar producto existente (PUT 200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Martillo de Uña 16 oz Reforzado\",\n  \"descripcion\": \"Martillo con mango de fibra de vidrio antideslizante\",\n  \"precio\": 14.50,\n  \"stock\": 30,\n  \"categoriaId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/productos/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "1"]
+            }
+          }
+        },
+        {
+          "name": "7. Eliminar producto por ID (DELETE 200)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["productos", "5"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

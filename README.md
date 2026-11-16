@@ -1,44 +1,114 @@
 # FerreGest - Sistema Web de Gestión e Inventario
 
-FerreGest es un proyecto web enfocado en la gestión comercial y de inventario para una ferretería. Está construido utilizando el patrón **MVC puro** con tecnologías Java Web, priorizando el control total sobre la arquitectura sin depender de frameworks de alto nivel.
+FerreGest es una plataforma integral para la gestión comercial y de inventario de una ferretería, evolucionada a lo largo de tres fases arquitectónicas:
+- **Fase 1 (Sprint 1)**: Patrón MVC con Servlets, JSP/JSTL y JDBC.
+- **Fase 2 (Sprint 2)**: Migración a **JavaServer Faces (JSF 2.3 + AJAX)** con persistencia **JPA 2.2 / Hibernate 5.6** y contenedor CDI (**Weld**).
+- **Fase 3 (Sprint 3)**: Construcción de una **API REST independiente** con **JAX-RS (Jersey 2.35)** y **Jackson** para serialización JSON, reutilizando los DAOs con JPA de la Fase 2, junto con un **Cliente Externo desacoplado** construido con HTML5, Bootstrap 5 y **Vanilla JavaScript (Fetch API)**.
+
+---
 
 ## Arquitectura y Tecnologías
-- **Patrón**: Modelo-Vista-Controlador (MVC).
-- **Lenguaje**: Java 17+
-- **Controlador**: Java Servlet API (`javax.servlet`)
-- **Vista**: JSP, JSTL, Expression Language, Bootstrap 5. *Regla estricta: Cero scriptlets (`<% %>`)*.
-- **Modelo/Persistencia**: POJOs y patrón DAO interactuando directamente con **JDBC puro** y `PreparedStatement` (cero frameworks tipo Hibernate).
-- **Base de Datos**: MySQL.
-- **Gestión de dependencias**: Maven (empaquetado WAR).
 
-## Instrucciones de Instalación y Ejecución
+| Capa | Tecnología |
+| :--- | :--- |
+| **Lenguaje y Build** | Java 17+, Apache Maven (empaquetado `WAR`) |
+| **Persistencia (Fase 2 y 3)** | JPA 2.2 + Hibernate Core 5.6.15.Final (`CategoriaDAO`, `ProductoDAO`) |
+| **Vista Servidor (Fase 2)** | JSF 2.3 (Mojarra) + Facelets (`.xhtml`) + CDI (Weld) |
+| **API REST (Fase 3)** | JAX-RS 2.1 (Jersey 2.35) + Jackson (`@JsonIgnore`, `jersey-media-json-jackson`) |
+| **Cliente Externo (Fase 3)** | HTML5 + Bootstrap 5.3 + Vanilla JavaScript (`fetch()`) en `/cliente/index.html` |
+| **Base de Datos** | MySQL 8.x (`ferregest_db`) |
+| **Servidor de Aplicaciones** | Apache Tomcat 8.5 / 9.0 (`javax.*`) |
+
+---
+
+## Documentación Técnica de la API REST (Fase 3)
+
+La configuración base de JAX-RS se define en `src/main/java/com/ferregest/config/RestConfig.java` mediante `@ApplicationPath("/api")`. Todas las rutas consumen y producen `application/json` y retornan códigos de estado HTTP semánticos (`200`, `201`, `400`, `404`, `500`) mediante `javax.ws.rs.core.Response`.
+
+Para evitar ciclos de recursión infinita durante la serialización JSON bidireccional, las entidades JPA incluyen `@JsonIgnore` en sus relaciones `@OneToMany` (`Categoria.productos`) y `@ManyToOne` (`Producto.categoria`).
+
+### URL Base
+```text
+http://localhost:8080/ferregest/api
+```
+
+---
+
+### 1. Recurso Categorías (`/api/categorias`)
+Clase: `com.ferregest.rest.CategoriaResource`
+
+| Método HTTP | Ruta | Descripción | Códigos de Estado HTTP |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/categorias` | Lista todas las categorías registradas. | `200 OK`, `500 Internal Server Error` |
+| `GET` | `/api/categorias/{id}` | Obtiene el detalle de una categoría por su ID. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+| `GET` | `/api/categorias/{id}/productos` | Lista los productos asociados a una categoría. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+| `POST` | `/api/categorias` | Crea una nueva categoría (valida que `nombre` no esté vacío ni duplicado). | `201 Created`, `400 Bad Request`, `500 Internal Server Error` |
+| `PUT` | `/api/categorias/{id}` | Actualiza una categoría existente por su ID. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+| `DELETE` | `/api/categorias/{id}` | Elimina una categoría desvinculando sus productos asociados (`SET NULL`). | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+
+#### Ejemplo de Cuerpo JSON (`POST` / `PUT /api/categorias`)
+```json
+{
+  "nombre": "Seguridad Industrial",
+  "descripcion": "Cascos, guantes, botas dieléctricas y gafas de protección"
+}
+```
+
+---
+
+### 2. Recurso Productos (`/api/productos`)
+Clase: `com.ferregest.rest.ProductoResource`
+
+| Método HTTP | Ruta | Descripción | Códigos de Estado HTTP |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/productos` | Lista todos los productos (soporta filtros opcionales `?categoriaId=` y `?buscar=`). | `200 OK`, `500 Internal Server Error` |
+| `GET` | `/api/productos/{id}` | Obtiene un producto específico por su ID. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+| `POST` | `/api/productos` | Crea un nuevo producto (valida `nombre` no vacío, `precio > 0`, `stock >= 0`). | `201 Created`, `400 Bad Request`, `500 Internal Server Error` |
+| `PUT` | `/api/productos/{id}` | Actualiza un producto existente por su ID. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+| `DELETE` | `/api/productos/{id}` | Elimina un producto del catálogo por su ID. | `200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error` |
+
+#### Ejemplo de Cuerpo JSON (`POST` / `PUT /api/productos`)
+```json
+{
+  "nombre": "Esmeriladora Angular 4.5 Pulgadas 850W",
+  "descripcion": "Esmeriladora compacta de 11000 RPM para corte y desbaste",
+  "precio": 54.99,
+  "stock": 18,
+  "categoriaId": 2
+}
+```
+
+---
+
+## Cliente Externo Independiente (`Fetch API`)
+
+En la carpeta `src/main/webapp/cliente/` se encuentra el cliente web independiente de JSF:
+- `index.html`: Interfaz responsiva maquetada con **Bootstrap 5.3**.
+- `style.css`: Estilos personalizados, indicadores KPI y diseño corporativo.
+- `app.js`: Consumo asíncrono mediante `fetch()` hacia `/api/categorias` y `/api/productos`, renderizado de tablas dinámicas, gestión de formularios `POST`/`PUT`, eliminación `DELETE`, spinners de carga obligatorios y alertas de error/éxito dinámicas.
+
+---
+
+## Instrucciones de Instalación, Ejecución y Pruebas
 
 ### 1. Preparar la Base de Datos
 1. Asegúrate de tener **MySQL Server** en ejecución.
-2. Abre tu cliente SQL favorito (MySQL Workbench, DBeaver, línea de comandos).
-3. Ejecuta el script de creación ubicado en `database/ferregest.sql`.
-   - Este script creará la base de datos `ferregest_db`.
-   - Creará las tablas `categorias` y `productos` con sus respectivas relaciones.
-   - Insertará 5 datos de prueba iniciales por cada tabla para validar el funcionamiento.
+2. Ejecuta el script `database/ferregest.sql` para crear la base de datos `ferregest_db`, las tablas `categorias` y `productos` y los datos iniciales.
+3. Verifica las credenciales en `src/main/resources/META-INF/persistence.xml`.
 
-### 2. Configurar la Conexión JDBC
-1. Abre el archivo `src/main/resources/db.properties`.
-2. Revisa que `db.url` apunte al puerto correcto (usualmente 3306).
-3. Modifica `db.user` y `db.password` colocando las credenciales válidas de tu instalación local de MySQL.
-
-### 3. Compilar el Proyecto (Maven)
-Desde tu IDE (VS Code, IntelliJ, Eclipse) usando las herramientas de Maven integradas, o desde la terminal ejecutando:
+### 2. Compilar y Empaquetar con Maven
 ```bash
 mvn clean package
 ```
-Esto descargará las dependencias y empaquetará el proyecto en `target/ferregest.war`.
+Esto generará el archivo `target/ferregest.war`.
 
-### 4. Desplegar en Apache Tomcat
-1. Utiliza **Apache Tomcat 8.5 o 9.0** (compatible con el namespace `javax.*` integrado en XAMPP).
-2. Copia el archivo `ferregest.war` generado en la carpeta `target/` y pégalo en la carpeta `webapps/` de tu instalación de Tomcat (`D:\xampp\tomcat\webapps\`).
-3. Inicia el servidor Tomcat desde el panel de XAMPP.
-4. Abre tu navegador y accede a los siguientes módulos:
-   - **Productos**: `http://localhost:8080/ferregest/productos`
-   - **Categorías**: `http://localhost:8080/ferregest/categorias`
+### 3. Desplegar en Apache Tomcat (8.5 / 9.0)
+Copia `target/ferregest.war` en la carpeta `webapps/` de Tomcat e inicia el servidor:
+- **Cliente Externo REST (Fase 3)**: `http://localhost:8080/ferregest/cliente/index.html`
+- **Endpoints API REST (Fase 3)**:
+  - `http://localhost:8080/ferregest/api/categorias`
+  - `http://localhost:8080/ferregest/api/productos`
+- **Vistas JSF (Fase 2)**: `http://localhost:8080/ferregest/index.xhtml`
 
-*Nota: La aplicación contiene operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar) para ambos módulos con validaciones de cliente utilizando HTML5 y JavaScript puro.*
+### 4. Probar con Postman
+Importa el archivo `ferregest_postman_collection.json` ubicado en la raíz del proyecto dentro de **Postman** para ejecutar las pruebas de todos los endpoints (`GET`, `POST`, `PUT`, `DELETE` y casos de validación `400`/`404`).
